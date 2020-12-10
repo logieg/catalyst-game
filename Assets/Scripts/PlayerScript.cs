@@ -1,20 +1,23 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Main player script to handle movement and interactions
 /// </summary>
 public class PlayerScript : MonoBehaviour
 {
-    public float speed = 6.5f,
-        acceleration = 1.5f,
-        damping = 0.1f,
-        jumpForce = 30.0f;
-    private Vector2 moveVelocity; // Local velocity change variable for movement control
+    /// <summary>Horizontal player movement speed</summary>
+    public float hSpeed = 6.0f;
+    /// <summary>The acceleration due to gravity</summary>
+    public float gravity = 0.3f;
+    /// <summary>The movement acceleration when jumping</summary>
+    public float jumpAcceleration = 10.0f;
+    /// <summary>The calculated change in position that will be applied if nothing prevents the player's movement</summary>
+    private Vector2 pendingMove;
+    /// <summary>Whether the player is currently on the ground</summary>
     private bool grounded = false;
 
+    // Prefabs and effects used by the player
     public GameObject bloodParticlePrefab;
-    public GameObject celebrationParticlePrefab;
     public AudioClip jumpSound;
     public AudioClip deathSound;
 
@@ -43,46 +46,47 @@ public class PlayerScript : MonoBehaviour
     // Called at a fixed rate along with physics updates
     private void FixedUpdate()
     {
+        // Gravity
+        if (grounded)
+            pendingMove.y = 0;
+        else
+            pendingMove.y -= gravity * Time.fixedDeltaTime;
+
         // Jump movement
-        if (Input.GetButtonDown("Jump") && grounded)
+        if (Input.GetAxis("Vertical") > 0.5 && grounded)
         {
-            // TODO - apply jump movement
+            // Apply jump movement
+            pendingMove.y = Input.GetAxis("Vertical") * jumpAcceleration * Time.fixedDeltaTime;
+
+            // Play jumping sound effect
             if (jumpSound != null)
-                SoundEffectScript.PlaySoundEffect(transform.position, jumpSound); // Jumping sound effect
+                SoundEffectScript.PlaySoundEffect(transform.position, jumpSound);
         }
 
         // Horizontal movement
-        moveVelocity.x += Input.GetAxis("Horizontal");
-        moveVelocity.x = Mathf.Clamp(moveVelocity.x, -speed, speed);
-
-        // TODO - better movement
+        pendingMove.x = Input.GetAxis("Horizontal") * hSpeed * Time.fixedDeltaTime;
 
         // Set the animator parameters
         GetComponent<Animator>().SetBool("Grounded", grounded);
-        GetComponent<Animator>().SetFloat("HVelocity", moveVelocity.x / speed);
-        GetComponent<Animator>().SetFloat("VVelocity", moveVelocity.y / speed);
+        // ? GetComponent<Animator>().SetFloat("HVelocity", moveVelocity.x / hSpeed);
+        // ? GetComponent<Animator>().SetFloat("VVelocity", moveVelocity.y / hSpeed);
+
+        // Apply the pending movement
+        Vector2 newPosition = transform.position;
+        newPosition.x += pendingMove.x;
+        newPosition.y += pendingMove.y;
+        transform.position = newPosition;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // TODO - handle movement blocking from collision
+        pendingMove.y = 0;
     }
 
-    /// <summary>
-    /// Kill the player with a death sound and a small splash of pixel blood
-    /// </summary>
-    public void Kill()
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        // TODO - visual death effects
 
-        // Death sound effect
-        if (deathSound != null)
-            SoundEffectScript.PlaySoundEffect(transform.position, deathSound);
-
-        // Make a pixel blood splash effect for a dramatic death
-        ParticleEffectScript.Splash(bloodParticlePrefab, transform, 25, 0.1f, 75.0f, 75.0f, 300.0f);
-
-        // TODO - respawn player and reset level
     }
 
     /// <summary>
@@ -95,5 +99,22 @@ public class PlayerScript : MonoBehaviour
         #else
             Application.Quit();
         #endif
+    }
+
+    /// <summary>
+    /// Kill the player with a death sound and a small splash of pixel blood
+    /// </summary>
+    public void Kill()
+    {
+        // TODO - visual death effects (ex. death sprite)
+
+        // Death sound effect
+        if (deathSound != null)
+            SoundEffectScript.PlaySoundEffect(transform.position, deathSound);
+
+        // Make a pixel blood splash effect for a dramatic death
+        ParticleEffectScript.Splash(bloodParticlePrefab, transform, 25, 0.1f, 75.0f, 75.0f, 300.0f);
+
+        // TODO - respawn player and reset level
     }
 }
