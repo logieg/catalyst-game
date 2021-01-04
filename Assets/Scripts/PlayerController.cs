@@ -7,6 +7,9 @@
 [RequireComponent (typeof (BoxCollider2D))]
 public class PlayerController : MonoBehaviour
 {
+    // The layer mask to use for object collisions
+    public LayerMask collisionMask;
+
     // The width of the player's "skin" (padding for raycasting)
     const float skinWidth = .015f;
 
@@ -27,23 +30,95 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     RaycastOrigins raycastOrigins;
 
-
     // Start is called before the first frame update
     void Start()
     {
+        // Setup for raycasting
         playerCollider = GetComponent<BoxCollider2D>();
+        CalculateRaySpacing();
     }
 
-    // Update is called once per frame
-    void Update()
+    /// <summary>
+    /// Attempt to move the player based on an intended velocity vector, with raycast-based collision handling
+    /// </summary>
+    /// <param name="velocity">The intended velocity vector for player movement</param>
+    public void Move(Vector3 velocity)
     {
         // Update raycasting information
         UpdateRaycastOrigins();
-        CalculateRaySpacing();
 
-        // DBUG> draw the raycasting rays
+        // Handle collisions and update the velocity if needed
+        if (velocity.x != 0)
+            HorizontalCollisions(ref velocity);
+        if (velocity.y != 0)
+            VerticalCollisions(ref velocity);
+
+        // Apply the movement
+        transform.Translate(velocity);
+    }
+
+    /// <summary>
+    /// Handle horizontal collisions and update the velocity vector if necessary
+    /// </summary>
+    /// <param name="velocity">A reference to the intended player velocity vector</param>
+    void HorizontalCollisions(ref Vector3 velocity)
+    {
+        // Get movement direction and ray length based on the velocity vector
+        float directionX = Mathf.Sign(velocity.x);
+        float rayLength = Mathf.Abs(velocity.x) + skinWidth;
+
+        for (int i = 0; i < horizontalRayCount; i++)
+        {
+            // Calculate the raycast origin based on the movement direction and ray spacing
+            Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight;
+            rayOrigin += Vector2.up * (horizontalRaySpacing * i);
+
+            // Cast a collision ray using the collision mask
+            RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+
+            // (Debug) Visually draw the horizontal raycasting rays
+            Debug.DrawRay(rayOrigin, Vector2.right * directionX * rayLength, Color.red);
+
+            if (hit)
+            {
+                // Adjust X velocity to be exactly the distance to the hit object
+                velocity.x = (hit.distance - skinWidth) * directionX;
+                // Adjust ray length so it cannot hit another object further away
+                rayLength = hit.distance;
+            }
+        }
+    }
+    
+    /// <summary>
+     /// Handle vertical collisions and update the velocity vector if necessary
+     /// </summary>
+     /// <param name="velocity">A reference to the intended player velocity vector</param>
+    void VerticalCollisions(ref Vector3 velocity)
+    {
+        // Get movement direction and ray length based on the velocity vector
+        float directionY = Mathf.Sign(velocity.y);
+        float rayLength = Mathf.Abs(velocity.y) + skinWidth;
+
         for (int i = 0; i < verticalRayCount; i++)
-            Debug.DrawRay(raycastOrigins.bottomLeft + Vector2.right * verticalRaySpacing * i, Vector2.up * -2, Color.red);
+        {
+            // Calculate the raycast origin based on the movement direction, ray spacing, and predicted X movement
+            Vector2 rayOrigin = (directionY == -1) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
+            rayOrigin += Vector2.right * (verticalRaySpacing * i + velocity.x);
+
+            // Cast a collision ray using the collision mask
+            RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, collisionMask);
+
+            // (Debug) Visually draw the vertical raycasting rays
+            Debug.DrawRay(rayOrigin, Vector2.up * directionY * rayLength, Color.red);
+
+            if (hit)
+            {
+                // Adjust Y velocity to be exactly the distance to the hit object
+                velocity.y = (hit.distance - skinWidth) * directionY;
+                // Adjust ray length so it cannot hit another object further away
+                rayLength = hit.distance;
+            }
+        }
     }
 
     /// <summary>

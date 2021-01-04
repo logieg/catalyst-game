@@ -7,6 +7,11 @@
 [RequireComponent (typeof (PlayerController))]
 public class PlayerScript : MonoBehaviour
 {
+    // Movement variables
+    float moveSpeed = 6;
+    float gravity = -20;
+    Vector3 velocity;
+
     /// <summary>
     /// The PlayerController to use for controlling the player
     /// </summary>
@@ -18,9 +23,20 @@ public class PlayerScript : MonoBehaviour
         controller = GetComponent<PlayerController>();
     }
 
-    // Update is called once per frame
-    void Update()
+    // FixedUpdate is called every fixed framerate frame
+    // NOTE: Adjust Settings > Time > Fixed Timestep for high-framerate physics (0.01666666 for 60Hz)
+    void FixedUpdate()
     {
-        
+        // Get the directional input from the player (without smoothing)
+        Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
+        // Apply horizontal movement from player input
+        velocity.x = input.x * moveSpeed;
+
+        // Apply gravity
+        velocity.y += gravity * Time.fixedDeltaTime;
+
+        // Attempt to move the player (and perform collision detection)
+        controller.Move(velocity * Time.fixedDeltaTime);
     }
 }
