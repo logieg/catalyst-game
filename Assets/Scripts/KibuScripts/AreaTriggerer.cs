@@ -33,7 +33,7 @@ public class AreaTriggerer : MonoBehaviour
 
             // If death trigger, murder the player
             if (isDeathTrigger)
-                collision.gameObject.GetComponent<PlayerScript>().Kill();
+                collision.gameObject.GetComponent<PlayerScriptOld>().Kill();
 
             // Destroy non-death trigger because it has done its job (and otherwise the player would be "grounded" in midair within the trigger)
             else
