@@ -29,6 +29,10 @@ public class PlayerController : MonoBehaviour
     /// A struct containing the raycast origin points based on the collider bounds
     /// </summary>
     RaycastOrigins raycastOrigins;
+    /// <summary>
+    /// A struct containing the collision info in all four directions around the player
+    /// </summary>
+    public CollisionInfo collisions;
 
     // Start is called before the first frame update
     void Start()
@@ -44,8 +48,9 @@ public class PlayerController : MonoBehaviour
     /// <param name="velocity">The intended velocity vector for player movement</param>
     public void Move(Vector3 velocity)
     {
-        // Update raycasting information
+        // Update raycasting and collision information
         UpdateRaycastOrigins();
+        collisions.Reset();
 
         // Handle collisions and update the velocity if needed
         if (velocity.x != 0)
@@ -85,6 +90,10 @@ public class PlayerController : MonoBehaviour
                 velocity.x = (hit.distance - skinWidth) * directionX;
                 // Adjust ray length so it cannot hit another object further away
                 rayLength = hit.distance;
+
+                // Set collision info
+                collisions.left = directionX == -1;
+                collisions.right = directionX == 1;
             }
         }
     }
@@ -117,6 +126,10 @@ public class PlayerController : MonoBehaviour
                 velocity.y = (hit.distance - skinWidth) * directionY;
                 // Adjust ray length so it cannot hit another object further away
                 rayLength = hit.distance;
+
+                // Set collision info
+                collisions.below = directionY == -1;
+                collisions.above = directionY == 1;
             }
         }
     }
@@ -169,5 +182,15 @@ public class PlayerController : MonoBehaviour
     {
         public Vector2 topLeft, topRight;
         public Vector2 bottomLeft, bottomRight;
+    }
+
+    /// <summary>
+    /// Struct containing boolean collision information (whether a collision is occurring in each direction)
+    /// </summary>
+    public struct CollisionInfo
+    {
+        public bool above, below;
+        public bool left, right;
+        public void Reset() { above = below = left = right = false; }
     }
 }
