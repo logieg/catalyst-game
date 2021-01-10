@@ -13,6 +13,9 @@ public class PlayerController : MonoBehaviour
     // The width of the player's "skin" (padding for raycasting)
     const float skinWidth = .015f;
 
+    // The maximum angle of slope the player can climb
+    public float maxSlopeAngle = 35.0f;
+
     // The number of rays in each direction
     public int horizontalRayCount = 4;
     public int verticalRayCount = 4;
@@ -86,14 +89,40 @@ public class PlayerController : MonoBehaviour
 
             if (hit)
             {
-                // Adjust X velocity to be exactly the distance to the hit object
-                velocity.x = (hit.distance - skinWidth) * directionX;
-                // Adjust ray length so it cannot hit another object further away
-                rayLength = hit.distance;
+                // Handle climbing a slope (within maximum slope angle)
+                float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                if (i == 0 && slopeAngle <= maxSlopeAngle)
+                {
+                    float distanceToSlopeStart = 0;
 
-                // Set collision info
-                collisions.left = directionX == -1;
-                collisions.right = directionX == 1;
+                    // Snap to slope if climbing a new slope
+                    if (slopeAngle != collisions.slopeAngleOld)
+                    {
+                        distanceToSlopeStart = hit.distance - skinWidth;
+                        velocity.x -= distanceToSlopeStart * directionX;
+                    }
+
+                    // Perform the velocity adjustments for the slope climb
+                    ClimbSlope(ref velocity, slopeAngle);
+                    velocity.x += distanceToSlopeStart * directionX;
+                }
+
+                // Handle ordinary horizontal collisions (non-slope)
+                if (!collisions.climbingSlope || slopeAngle > maxSlopeAngle)
+                {
+                    // Adjust X velocity to be exactly the distance to the hit object
+                    velocity.x = (hit.distance - skinWidth) * directionX;
+                    // Adjust ray length so it cannot hit another object further away
+                    rayLength = hit.distance;
+
+                    // Handle case where player collides with a wall on a slope
+                    if (collisions.climbingSlope)
+                        velocity.y = Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(velocity.x);
+
+                    // Set collision info
+                    collisions.left = directionX == -1;
+                    collisions.right = directionX == 1;
+                }
             }
         }
     }
@@ -127,10 +156,35 @@ public class PlayerController : MonoBehaviour
                 // Adjust ray length so it cannot hit another object further away
                 rayLength = hit.distance;
 
+                // Handle case where player collides with a ceiling on a slope
+                if (collisions.climbingSlope)
+                    velocity.x = velocity.y / Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(velocity.x);
+
                 // Set collision info
                 collisions.below = directionY == -1;
                 collisions.above = directionY == 1;
             }
+        }
+    }
+
+    /// <summary>
+    /// Handle climbing a slope and update the velocity vector accordingly
+    /// </summary>
+    /// <param name="velocity">A reference to the intended player velocity vector</param>
+    /// <param name="slopeAngle">The angle of the slope that was encountered</param>
+    void ClimbSlope(ref Vector3 velocity, float slopeAngle)
+    {
+        float moveDistance = Mathf.Abs(velocity.x);
+        float climbVelocityY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+
+        // Check that a jump (or other vertical movement) doesn't override the vertical component of the slope climb
+        if (velocity.y <= climbVelocityY)
+        {
+            velocity.y = climbVelocityY;
+            velocity.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(velocity.x);
+            collisions.below = true;
+            collisions.climbingSlope = true;
+            collisions.slopeAngle = slopeAngle;
         }
     }
 
@@ -185,12 +239,18 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Struct containing boolean collision information (whether a collision is occurring in each direction)
+    /// Struct containing collision information (directional and slope collisions)
     /// </summary>
     public struct CollisionInfo
     {
         public bool above, below;
         public bool left, right;
-        public void Reset() { above = below = left = right = false; }
+        public bool climbingSlope;
+        public float slopeAngle, slopeAngleOld;
+        public void Reset() {
+            above = below = left = right = climbingSlope = false;
+            slopeAngleOld = slopeAngle;
+            slopeAngle = 0;
+        }
     }
 }
