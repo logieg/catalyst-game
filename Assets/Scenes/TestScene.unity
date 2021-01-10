@@ -332,13 +332,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 344793974}
-  m_LocalRotation: {x: -0, y: -0, z: 0.14285667, w: 0.9897434}
-  m_LocalPosition: {x: -3.23, y: -1.03, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: 0.21880548, w: 0.9757685}
+  m_LocalPosition: {x: -3.23, y: -0.6, z: 0}
   m_LocalScale: {x: 4.299161, y: 0.425, z: 1}
   m_Children: []
   m_Father: {fileID: 1456017093}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 16.426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 25.278}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1089,7 +1089,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 739170466}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.43, y: 0.36, z: 0}
+  m_LocalPosition: {x: -1.47, y: 1.11, z: 0}
   m_LocalScale: {x: 0.6, y: 1.9125, z: 1}
   m_Children: []
   m_Father: {fileID: 1456017093}
@@ -1590,7 +1590,8 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 1
-  maxSlopeAngle: 35
+  maxSlopeAngle: 38
+  maxDescendAngle: 38
   horizontalRayCount: 4
   verticalRayCount: 4
 --- !u!114 &2029324219

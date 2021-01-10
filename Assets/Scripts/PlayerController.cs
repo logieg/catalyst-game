@@ -13,8 +13,9 @@ public class PlayerController : MonoBehaviour
     // The width of the player's "skin" (padding for raycasting)
     const float skinWidth = .015f;
 
-    // The maximum angle of slope the player can climb
-    public float maxSlopeAngle = 35.0f;
+    // The maximum angle of slope the player can climb or descend
+    public float maxSlopeAngle = 38.0f;
+    public float maxDescendAngle = 38.0f;
 
     // The number of rays in each direction
     public int horizontalRayCount = 4;
@@ -54,6 +55,11 @@ public class PlayerController : MonoBehaviour
         // Update raycasting and collision information
         UpdateRaycastOrigins();
         collisions.Reset();
+        collisions.velocityOld = velocity;
+
+        // Try handling slope descending if player is moving down
+        if (velocity.y < 0)
+            DescendSlope(ref velocity);
 
         // Handle collisions and update the velocity if needed
         if (velocity.x != 0)
@@ -93,9 +99,15 @@ public class PlayerController : MonoBehaviour
                 float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
                 if (i == 0 && slopeAngle <= maxSlopeAngle)
                 {
-                    float distanceToSlopeStart = 0;
+                    // Switch from descending one slope to climbing another
+                    if (collisions.descendingSlope)
+                    {
+                        collisions.descendingSlope = false;
+                        velocity = collisions.velocityOld;
+                    }
 
                     // Snap to slope if climbing a new slope
+                    float distanceToSlopeStart = 0;
                     if (slopeAngle != collisions.slopeAngleOld)
                     {
                         distanceToSlopeStart = hit.distance - skinWidth;
@@ -165,6 +177,27 @@ public class PlayerController : MonoBehaviour
                 collisions.above = directionY == 1;
             }
         }
+
+        // Handle case where a slope intersects with another slope of a different angle
+        if (collisions.climbingSlope)
+        {
+            float directionX = Mathf.Sign(velocity.x);
+            rayLength = Mathf.Abs(velocity.x) + skinWidth;
+            Vector2 rayOrigin = ((directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + Vector2.up * velocity.y;
+            RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+
+            if (hit)
+            {
+                float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                // Check if about to climb a new slope
+                if (slopeAngle != collisions.slopeAngle)
+                {
+                    // Snap to new slope, not old
+                    velocity.x = (hit.distance - skinWidth) * directionX;
+                    collisions.slopeAngle = slopeAngle;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -180,11 +213,49 @@ public class PlayerController : MonoBehaviour
         // Check that a jump (or other vertical movement) doesn't override the vertical component of the slope climb
         if (velocity.y <= climbVelocityY)
         {
+            // Adjust movement velocity to climb the slope
             velocity.y = climbVelocityY;
             velocity.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(velocity.x);
+
+            // Update collision/slope info
             collisions.below = true;
             collisions.climbingSlope = true;
             collisions.slopeAngle = slopeAngle;
+        }
+    }
+
+    /// <summary>
+    /// Handle descending a slope and update the velocity vector accordingly
+    /// </summary>
+    /// <param name="velocity">A reference to the intended player velocity vector</param>
+    void DescendSlope(ref Vector3 velocity)
+    {
+        // Cast a ray downward to detect a slope
+        float directionX = Mathf.Sign(velocity.x);
+        Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -Vector2.up, Mathf.Infinity, collisionMask);
+
+        if (hit)
+        {
+            // Check that slope angle is descendable
+            float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+            if (slopeAngle != 0 && slopeAngle <= maxDescendAngle)
+                // Check that slope is in the same direction as X movement
+                if (Mathf.Sign(hit.normal.x) == directionX)
+                    // Check that distance to slope is close enough to descend
+                    if (hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(velocity.x))
+                    {
+                        // Adjust movement velocity to descend the slope
+                        float moveDistance = Mathf.Abs(velocity.x);
+                        float descendVelocityY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+                        velocity.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(velocity.x);
+                        velocity.y -= descendVelocityY;
+
+                        // Update collision/slope info
+                        collisions.slopeAngle = slopeAngle;
+                        collisions.descendingSlope = true;
+                        collisions.below = true;
+                    }
         }
     }
 
@@ -245,10 +316,11 @@ public class PlayerController : MonoBehaviour
     {
         public bool above, below;
         public bool left, right;
-        public bool climbingSlope;
+        public bool climbingSlope, descendingSlope;
         public float slopeAngle, slopeAngleOld;
+        public Vector3 velocityOld;
         public void Reset() {
-            above = below = left = right = climbingSlope = false;
+            above = below = left = right = climbingSlope = descendingSlope = false;
             slopeAngleOld = slopeAngle;
             slopeAngle = 0;
         }
