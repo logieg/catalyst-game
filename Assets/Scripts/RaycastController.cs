@@ -1,16 +1,20 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// A generalized raycasting controller to handle multi-directional raycasting (ex. for raycast-based physics)
+/// Generalized raycasting controller to handle multi-directional raycasting (ex. for raycast-based physics)
 /// </summary>
 // Based on the 2D platformer controller by Sebastian Lague
 [RequireComponent (typeof (BoxCollider2D))]
 public class RaycastController : MonoBehaviour
 {
-    // The layer mask to use for object collisions
+    /// <summary>
+    /// The layer mask to use for object collisions
+    /// </summary>
     public LayerMask collisionMask;
 
-    // The width of the object's "skin" (padding for raycasting)
+    /// <summary>
+    /// The width of the object's "skin" (padding for raycasting)
+    /// </summary>
     public const float skinWidth = .015f;
 
     // The number of rays in each direction
