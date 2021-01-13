@@ -17,6 +17,13 @@ public class MovingPlatformController : RaycastController
     /// </summary>
     public Vector3 move;
 
+    // The list of pending passenger movements (constructed each tick by CalculatePassengerMovement)
+    List<PassengerMovement> passengerMovement;
+
+    // A cache of passenger PlayerControllers to avoid calling GetComponent() multiple times per tick (optimization)
+    Dictionary<Transform, PlayerController> passengerDictionary = new Dictionary<Transform, PlayerController>();
+
+
     // Start is called before the first frame update
     public override void Start()
     {
@@ -33,19 +40,44 @@ public class MovingPlatformController : RaycastController
         // Adjust movement to per-tick velocity
         Vector3 velocity = move * Time.fixedDeltaTime;
 
-        // Handle moving any passengers, then apply platform movement
-        MovePassengers(velocity);
+        // Calculate pending movement for passengers
+        CalculatePassengerMovement(velocity);
+
+        // Apply passenger and platform movement
+        MovePassengers(true);
         transform.Translate(velocity);
+        MovePassengers(false);
     }
 
     /// <summary>
-    /// Handle movement of any passengers on the platform (ex. the player) to keep them on the platform
+    /// Apply all pending passenger movements calculated by CalculatePassengerMovement()
+    /// </summary>
+    /// <param name="beforePlatformMovement">Whether the MovePassengers call occurs before platform movement is applied</param>
+    void MovePassengers(bool beforePlatformMovement)
+    {
+        foreach (PassengerMovement passenger in passengerMovement)
+        {
+            // Cache the PlayerController component for a new passenger (optimization)
+            if (!passengerDictionary.ContainsKey(passenger.transform))
+                passengerDictionary.Add(passenger.transform, passenger.transform.GetComponent<PlayerController>());
+
+            // Apply the pending passenger movement by calling the passenger's Move() method (ensuring collisions are handled)
+            if (passenger.moveBeforePlatform == beforePlatformMovement)
+                passengerDictionary[passenger.transform].Move(passenger.velocity, passenger.onPlatform);
+        }
+    }
+
+    /// <summary>
+    /// Calculate the necessary movement for any passengers on the platform (ex. the player) to keep them on the platform
     /// </summary>
     /// <param name="velocity">The intended velocity vector for platform movement</param>
-    void MovePassengers(Vector3 velocity)
+    void CalculatePassengerMovement(Vector3 velocity)
     {
         // The set of passengers that have been moved this tick, to prevent passengers from being moved twice
         HashSet<Transform> movedPassengers = new HashSet<Transform>();
+
+        // The list of pending passenger movements (to be calculated in this method)
+        passengerMovement = new List<PassengerMovement>();
 
         float directionX = Mathf.Sign(velocity.x);
         float directionY = Mathf.Sign(velocity.y);
@@ -70,10 +102,10 @@ public class MovingPlatformController : RaycastController
                     {
                         movedPassengers.Add(hit.transform);
 
-                        // Push the passenger on the platform
+                        // Push the passenger on the platform by adding a pending movement entry
                         float pushX = (directionY == 1) ? velocity.x : 0;
                         float pushY = velocity.y - (hit.distance - skinWidth) * directionY;
-                        hit.transform.Translate(new Vector3(pushX, pushY));
+                        passengerMovement.Add(new PassengerMovement(hit.transform, new Vector3(pushX, pushY), directionY == 1, true));
                     }
                 }
             }
@@ -99,10 +131,10 @@ public class MovingPlatformController : RaycastController
                     {
                         movedPassengers.Add(hit.transform);
 
-                        // Push the passenger on the platform
+                        // Push the passenger on the platform by adding a pending movement entry
                         float pushX = velocity.x - (hit.distance - skinWidth) * directionX;
-                        float pushY = 0;
-                        hit.transform.Translate(new Vector3(pushX, pushY));
+                        float pushY = -skinWidth;   // Forces player to do vertical collision checks while being pushed
+                        passengerMovement.Add(new PassengerMovement(hit.transform, new Vector3(pushX, pushY), false, true));
                     }
                 }
             }
@@ -125,13 +157,32 @@ public class MovingPlatformController : RaycastController
                     {
                         movedPassengers.Add(hit.transform);
 
-                        // Push the passenger with the platform's movement
+                        // Push the passenger with the platform's movement by adding a pending movement entry
                         float pushX = velocity.x;
                         float pushY = velocity.y;
-                        hit.transform.Translate(new Vector3(pushX, pushY));
+                        passengerMovement.Add(new PassengerMovement(hit.transform, new Vector3(pushX, pushY), true, false));
                     }
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Struct to hold information about pending passenger movement
+    /// </summary>
+    struct PassengerMovement
+    {
+        public Transform transform;         // The passenger's transform
+        public Vector3 velocity;            // The passenger's intended movement
+        public bool onPlatform;             // Whether the passenger is currently on the moving platform
+        public bool moveBeforePlatform;     // Whether the passenger needs to move before or after the platform moves
+
+        public PassengerMovement(Transform transform, Vector3 velocity, bool onPlatform, bool moveBeforePlatform)
+        {
+            this.transform = transform;
+            this.velocity = velocity;
+            this.onPlatform = onPlatform;
+            this.moveBeforePlatform = moveBeforePlatform;
         }
     }
 }

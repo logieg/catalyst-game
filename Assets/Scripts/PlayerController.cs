@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// Player controller script to handle raycasts and platformer movement
+/// 2D player controller script to handle raycasts and platformer movement
 /// </summary>
 // Based on the 2D platformer controller by Sebastian Lague
 public class PlayerController : RaycastController
@@ -27,7 +27,8 @@ public class PlayerController : RaycastController
     /// Attempt to move the player based on an intended velocity vector, with raycast-based collision handling
     /// </summary>
     /// <param name="velocity">The intended velocity vector for player movement</param>
-    public void Move(Vector3 velocity)
+    /// <param name="onPlatform">Set to true if the player is on a moving platform to ensure jumping is enabled</param>
+    public void Move(Vector3 velocity, bool onPlatform = false)
     {
         // Update raycasting and collision information
         UpdateRaycastOrigins();
@@ -46,6 +47,10 @@ public class PlayerController : RaycastController
 
         // Apply the movement
         transform.Translate(velocity);
+
+        // Ensure jumping is enabled when on a platform
+        if (onPlatform)
+            collisions.below = true;
     }
 
     /// <summary>
@@ -72,6 +77,10 @@ public class PlayerController : RaycastController
 
             if (hit)
             {
+                // Skip collision handling if inside another collider (allow player to move out of it)
+                if (hit.distance == 0)
+                    continue;
+
                 // Handle climbing a slope (within maximum slope angle)
                 float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
                 if (i == 0 && slopeAngle <= maxSlopeAngle)
