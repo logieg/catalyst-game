@@ -21,6 +21,9 @@ public class PlayerController : RaycastController
     {
         // RaycastController setup
         base.Start();
+
+        // Set initial face direction
+        collisions.faceDirection = 1;
     }
 
     /// <summary>
@@ -35,13 +38,16 @@ public class PlayerController : RaycastController
         collisions.Reset();
         collisions.velocityOld = velocity;
 
+        // Update face direction
+        if (velocity.x != 0)
+            collisions.faceDirection = (int)Mathf.Sign(velocity.x);
+
         // Try handling slope descending if player is moving down
         if (velocity.y < 0)
             DescendSlope(ref velocity);
 
         // Handle collisions and update the velocity if needed
-        if (velocity.x != 0)
-            HorizontalCollisions(ref velocity);
+        HorizontalCollisions(ref velocity);
         if (velocity.y != 0)
             VerticalCollisions(ref velocity);
 
@@ -60,8 +66,12 @@ public class PlayerController : RaycastController
     void HorizontalCollisions(ref Vector3 velocity)
     {
         // Get movement direction and ray length based on the velocity vector
-        float directionX = Mathf.Sign(velocity.x);
+        float directionX = collisions.faceDirection;
         float rayLength = Mathf.Abs(velocity.x) + skinWidth;
+
+        // If barely moving, set ray length to detect a wall in contact with the player (for wall jumping/sliding)
+        if (Mathf.Abs(velocity.x) < skinWidth)
+            rayLength = skinWidth * 2;
 
         for (int i = 0; i < horizontalRayCount; i++)
         {
@@ -255,6 +265,7 @@ public class PlayerController : RaycastController
         public bool climbingSlope, descendingSlope;
         public float slopeAngle, slopeAngleOld;
         public Vector3 velocityOld;
+        public int faceDirection;
         public void Reset() {
             above = below = left = right = climbingSlope = descendingSlope = false;
             slopeAngleOld = slopeAngle;
