@@ -13,9 +13,39 @@ public class MovingPlatformController : RaycastController
     public LayerMask passengerMask;
 
     /// <summary>
-    /// Vector3 representing the intended movement behavior of the moving platform
+    /// Array of relative waypoint positions that the moving platform will follow
     /// </summary>
-    public Vector3 move;
+    public Vector3[] localWaypoints;
+    // Globalized (world-space) waypoint locations
+    Vector3[] globalWaypoints;
+
+    /// <summary>
+    /// The movement speed of the platform
+    /// </summary>
+    public float speed;
+
+    /// <summary>
+    /// Whether the movement is cyclic/looping or not
+    /// </summary>
+    public bool cyclic;
+
+    /// <summary>
+    /// The time to wait at each waypoint before moving again
+    /// </summary>
+    public float waitTime;
+
+    /// <summary>
+    /// The amount of easing to apply to platform movement (from 0 to 2)
+    /// </summary>
+    [Range(0,2)]
+    public float easeAmount;
+
+    // Index of origin waypoint (last waypoint reached)
+    int fromWaypointIndex;
+    // Percent (0 to 1) travel progress between waypoints
+    float percentBetweenWaypoints;
+    // The exact time at which to begin moving again
+    float nextMoveTime;
 
     // The list of pending passenger movements (constructed each tick by CalculatePassengerMovement)
     List<PassengerMovement> passengerMovement;
@@ -29,6 +59,11 @@ public class MovingPlatformController : RaycastController
     {
         // RaycastController setup
         base.Start();
+
+        // Convert local/relative waypoint locations to global/world-space locations
+        globalWaypoints = new Vector3[localWaypoints.Length];
+        for (int i = 0; i < localWaypoints.Length; i++)
+            globalWaypoints[i] = localWaypoints[i] + transform.position;
     }
 
     // FixedUpdate is called every fixed framerate frame
@@ -37,8 +72,8 @@ public class MovingPlatformController : RaycastController
         // Update raycasting information
         UpdateRaycastOrigins();
 
-        // Adjust movement to per-tick velocity
-        Vector3 velocity = move * Time.fixedDeltaTime;
+        // Calculate per-tick movement velocity for platform
+        Vector3 velocity = CalculatePlatformMovement();
 
         // Calculate pending movement for passengers
         CalculatePassengerMovement(velocity);
@@ -47,6 +82,60 @@ public class MovingPlatformController : RaycastController
         MovePassengers(true);
         transform.Translate(velocity);
         MovePassengers(false);
+    }
+
+    /// <summary>
+    /// Simple exponential easing function using easeAmount
+    /// </summary>
+    /// <param name="x">The value between 0 and 1 representing position in the function (should be linear)</param>
+    /// <returns>An eased value produced from easeAmount and the input x</returns>
+    float Ease(float x)
+    {
+        float a = easeAmount + 1;   // Adjust so that easeAmount = 0 means no easing
+        return (Mathf.Pow(x, a) / (Mathf.Pow(x, a) + Mathf.Pow(1 - x, a)));     // x^a / (x^a + (1-x)^a)
+    }
+
+    /// <summary>
+    /// Calculate the platform's movement amount based on waypoints, easing, and wait time
+    /// </summary>
+    /// <returns>The calculated intended movement vector for the platform</returns>
+    Vector3 CalculatePlatformMovement()
+    {
+        // Don't move if waiting
+        if (Time.time < nextMoveTime)
+            return Vector3.zero;
+
+        // Update waypoint indexes (from and to)
+        fromWaypointIndex %= globalWaypoints.Length;
+        int toWaypointIndex = (fromWaypointIndex + 1) % globalWaypoints.Length;
+
+        // Calculate distance between waypoints and travel progress percentage
+        float distanceBetweenWaypoints = Vector3.Distance(globalWaypoints[fromWaypointIndex], globalWaypoints[toWaypointIndex]);
+        percentBetweenWaypoints += Time.fixedDeltaTime * speed / distanceBetweenWaypoints;
+        percentBetweenWaypoints = Mathf.Clamp01(percentBetweenWaypoints);
+        float easedPercentBetweenWaypoints = Ease(percentBetweenWaypoints);     // Apply easing
+
+        // Calculate new world position based on eased travel progress percentage
+        Vector3 newPos = Vector3.Lerp(globalWaypoints[fromWaypointIndex], globalWaypoints[toWaypointIndex], easedPercentBetweenWaypoints);
+
+        // Destination waypoint has been reached
+        if (percentBetweenWaypoints >= 1)
+        {
+            percentBetweenWaypoints = 0;
+            fromWaypointIndex++;
+            
+            // If movement is not cyclic and last waypoint was reached, reverse the path
+            if (!cyclic && fromWaypointIndex >= globalWaypoints.Length - 1)
+            {
+                fromWaypointIndex = 0;
+                System.Array.Reverse(globalWaypoints);
+            }
+
+            nextMoveTime = Time.time + waitTime;
+        }
+
+        // Adjust result to relative movement
+        return (newPos - transform.position);
     }
 
     /// <summary>
@@ -183,6 +272,22 @@ public class MovingPlatformController : RaycastController
             this.velocity = velocity;
             this.onPlatform = onPlatform;
             this.moveBeforePlatform = moveBeforePlatform;
+        }
+    }
+
+    // Draw waypoints as small crosses in the editor using debug gizmos
+    private void OnDrawGizmos()
+    {
+        if (localWaypoints != null)
+        {
+            Gizmos.color = Color.blue;
+            float size = 0.15f;
+            for (int i = 0; i < localWaypoints.Length; i++)
+            {
+                Vector3 globalWaypointPos = Application.isPlaying ? globalWaypoints[i] : localWaypoints[i] + transform.position;  // Use global waypoints in-game
+                Gizmos.DrawLine(globalWaypointPos - Vector3.up * size, globalWaypointPos + Vector3.up * size);
+                Gizmos.DrawLine(globalWaypointPos - Vector3.left * size, globalWaypointPos + Vector3.left * size);
+            }
         }
     }
 }
