@@ -15,6 +15,9 @@ public class PlayerController : RaycastController
     /// </summary>
     public CollisionInfo collisions;
 
+    // The directional input from the player
+    Vector2 playerInput;
+
 
     // Start is called before the first frame update
     public override void Start()
@@ -27,16 +30,26 @@ public class PlayerController : RaycastController
     }
 
     /// <summary>
+    /// No-input overload method for Move(velocity, input, onPlatform)
+    /// </summary>
+    public void Move(Vector3 velocity, bool onPlatform = false)
+    {
+        Move(velocity, Vector2.zero, onPlatform);
+    }
+
+    /// <summary>
     /// Attempt to move the player based on an intended velocity vector, with raycast-based collision handling
     /// </summary>
     /// <param name="velocity">The intended velocity vector for player movement</param>
+    /// <param name="input">The directional input vector from the player</param>
     /// <param name="onPlatform">Set to true if the player is on a moving platform to ensure jumping is enabled</param>
-    public void Move(Vector3 velocity, bool onPlatform = false)
+    public void Move(Vector3 velocity, Vector2 input, bool onPlatform = false)
     {
-        // Update raycasting and collision information
+        // Update raycasting, collision, and input information
         UpdateRaycastOrigins();
         collisions.Reset();
         collisions.velocityOld = velocity;
+        playerInput = input;
 
         // Update face direction
         if (velocity.x != 0)
@@ -159,6 +172,22 @@ public class PlayerController : RaycastController
 
             if (hit)
             {
+                // Allow player to pass through one-way platforms (by skipping collision and velocity calculations)
+                if (hit.collider.CompareTag("OneWay"))
+                {
+                    // Pass through platform if moving up or falling through
+                    if (directionY == 1 || collisions.fallingThroughPlatform)
+                        continue;
+
+                    // Begin falling through platform when input is down
+                    if (playerInput.y < -0.6f)
+                    {
+                        collisions.fallingThroughPlatform = true;
+                        Invoke("ResetFallingThroughPlatform", 0.4f);
+                        continue;
+                    }
+                }
+
                 // Adjust Y velocity to be exactly the distance to the hit object
                 velocity.y = (hit.distance - skinWidth) * directionY;
                 // Adjust ray length so it cannot hit another object further away
@@ -256,6 +285,14 @@ public class PlayerController : RaycastController
     }
 
     /// <summary>
+    /// Invokable method to reset the collisions.fallingThroughPlatform flag to false
+    /// </summary>
+    void ResetFallingThroughPlatform()
+    {
+        collisions.fallingThroughPlatform = false;
+    }
+
+    /// <summary>
     /// Struct containing collision information (directional and slope collisions)
     /// </summary>
     public struct CollisionInfo
@@ -266,6 +303,7 @@ public class PlayerController : RaycastController
         public float slopeAngle, slopeAngleOld;
         public Vector3 velocityOld;
         public int faceDirection;
+        public bool fallingThroughPlatform;
         public void Reset() {
             above = below = left = right = climbingSlope = descendingSlope = false;
             slopeAngleOld = slopeAngle;

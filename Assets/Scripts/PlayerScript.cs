@@ -9,7 +9,8 @@ public class PlayerScript : MonoBehaviour
 {
     // Public movement variables
     public float moveSpeed = 6.5f;                  // Speed of horizontal movement
-    public float jumpHeight = 3.0f;                 // Max jump height in units
+    public float maxJumpHeight = 3.0f;              // Maximum jump height in units
+    public float minJumpHeight = 1.0f;              // Minimum jump height in units
     public float timeToJumpApex = 0.4f;             // Time to reach the jump apex
     public float accelerationTimeAirborne = 0.08f;  // Time to change horizontal directions (in air)
     public float accelerationTimeGrounded = 0.02f;  // Time to change horizontal directions (on the ground)
@@ -22,7 +23,9 @@ public class PlayerScript : MonoBehaviour
 
     // Internal movement variables
     float gravity;
-    float jumpVelocity;
+    float maxJumpVelocity;
+    float minJumpVelocity;
+    bool jumping = false;
     Vector3 velocity;
     float velocityXSmoothing;
     float timeToWallUnstick;
@@ -37,9 +40,10 @@ public class PlayerScript : MonoBehaviour
     {
         controller = GetComponent<PlayerController>();
 
-        // Calculate gravity and jump velocity
-        gravity = (-2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2.0f);
-        jumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
+        // Calculate gravity and jump velocities
+        gravity = (-2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2.0f);
+        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
+        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
     }
 
     // FixedUpdate is called every fixed framerate frame
@@ -81,16 +85,13 @@ public class PlayerScript : MonoBehaviour
                 timeToWallUnstick = wallStickTime;
         }
 
-        // Reset vertical velocity if a vertical collision occurs
-        if (controller.collisions.above || controller.collisions.below)
-            velocity.y = 0;
-
         // Apply jump from player input
         if (Input.GetAxisRaw("Jump") > 0.3f)
         {
             // Wall jump
             if (wallSliding)
             {
+                jumping = true;
                 if (Mathf.Abs(input.x) < 0.2f)
                 {
                     // Wall jump: Jump off
@@ -113,13 +114,27 @@ public class PlayerScript : MonoBehaviour
 
             // Regular jump from ground
             else if (controller.collisions.below)
-                velocity.y = jumpVelocity;
+            {
+                jumping = true;
+                velocity.y = maxJumpVelocity;
+            }
+        }
+
+        // Variable jumping (only handled if no jump input and player was jumping)
+        else if (jumping) {
+            jumping = false;
+            if (velocity.y > minJumpVelocity)
+                velocity.y = minJumpVelocity;
         }
 
         // Apply gravity
         velocity.y += gravity * Time.fixedDeltaTime;
 
         // Attempt to move the player (and perform collision detection)
-        controller.Move(velocity * Time.fixedDeltaTime);
+        controller.Move(velocity * Time.fixedDeltaTime, input);
+
+        // Reset vertical velocity if a vertical collision occurs
+        if (controller.collisions.above || controller.collisions.below)
+            velocity.y = 0;
     }
 }
