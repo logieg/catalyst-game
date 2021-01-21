@@ -16,7 +16,8 @@ public class PlayerController : RaycastController
     public CollisionInfo collisions;
 
     // The directional input from the player
-    Vector2 playerInput;
+    [HideInInspector]
+    public Vector2 playerInput;
 
 
     // Start is called before the first frame update

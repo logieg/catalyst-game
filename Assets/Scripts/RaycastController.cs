@@ -39,11 +39,17 @@ public class RaycastController : MonoBehaviour
     public RaycastOrigins raycastOrigins;
 
 
+    // Awake is called when the script is loaded, before Start
+    public virtual void Awake()
+    {
+        // Get the collider of the object
+        collider = GetComponent<BoxCollider2D>();
+    }
+
     // Start is called before the first frame update
     public virtual void Start()
     {
         // Setup for raycasting
-        collider = GetComponent<BoxCollider2D>();
         CalculateRaySpacing();
     }
 
