@@ -17,8 +17,15 @@ public class RaycastController : MonoBehaviour
     /// </summary>
     public const float skinWidth = .015f;
 
+    /// <summary>
+    /// The space between each ray, used to calculate ray spacing and ray counts
+    /// </summary>
+    public float distanceBetweenRays = .25f;
+
     // The number of rays in each direction
+    [HideInInspector]
     public int horizontalRayCount = 4;
+    [HideInInspector]
     public int verticalRayCount = 4;
 
     // The spacing between rays in each direction along the object's collider
@@ -83,7 +90,14 @@ public class RaycastController : MonoBehaviour
     /// </summary>
     public void CalculateRaySpacing()
     {
+        // Get bounds for raycasting
         Bounds bounds = GetRaycastBounds();
+        float boundsWidth = bounds.size.x;
+        float boundsHeight = bounds.size.y;
+
+        // Calculate the ray counts based on the distance between rays
+        horizontalRayCount = Mathf.RoundToInt(boundsHeight / distanceBetweenRays);
+        verticalRayCount = Mathf.RoundToInt(boundsWidth / distanceBetweenRays);
 
         // Clamp the ray counts (cannot equal 0 or 1)
         horizontalRayCount = Mathf.Clamp(horizontalRayCount, 2, int.MaxValue);

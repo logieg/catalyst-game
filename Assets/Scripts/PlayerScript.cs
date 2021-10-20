@@ -3,7 +3,7 @@
 /// <summary>
 /// Main player script to handle movement and interactions
 /// </summary>
-// Includes sections based on the 2D platformer player script by Sebastian Lague
+// Based on the 2D platformer player script by Sebastian Lague
 [RequireComponent (typeof (PlayerController))]
 public class PlayerScript : MonoBehaviour
 {
@@ -19,21 +19,24 @@ public class PlayerScript : MonoBehaviour
     public Vector2 wallJumpOff;                     // Velocity vector for a wall jump (jump off)
     public Vector2 wallJumpLeap;                    // Velocity vector for a wall jump (leap jump)
     public float wallSlideSpeedMax = 2.2f;          // Maximum downward speed while wall sliding
-    public float wallStickTime = 0.2f;              // Time to stick to a wall when wall sliding and input is away from the wall
+    public float wallStickTime = 0.15f;             // Time to stick to a wall when wall sliding and input is away from the wall
 
     // Internal movement variables
+    Vector2 directionalInput;
     float gravity;
     float maxJumpVelocity;
     float minJumpVelocity;
-    bool jumping = false;
     Vector3 velocity;
     float velocityXSmoothing;
     float timeToWallUnstick;
+    bool wallSliding;
+    int wallDirX;
 
     /// <summary>
     /// The PlayerController to use for controlling the player
     /// </summary>
     PlayerController controller;
+
 
     // Start is called before the first frame update
     void Start()
@@ -50,17 +53,88 @@ public class PlayerScript : MonoBehaviour
     // NOTE: Adjust Settings > Time > Fixed Timestep for high-framerate physics (0.01666666 for 60Hz)
     void FixedUpdate()
     {
-        // Get the directional input from the player (without smoothing)
-        Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        // Apply horizontal movement and gravity
+        CalculateVelocity();
 
+        // Wall sliding behavior
+        HandleWallSliding();
+
+        // Attempt to move the player (and perform collision detection)
+        controller.Move(velocity * Time.fixedDeltaTime, directionalInput);
+
+        // Reset vertical velocity if a vertical collision occurs
+        if (controller.collisions.above || controller.collisions.below)
+            velocity.y = 0;
+    }
+
+    /// <summary>
+    /// Set the saved directional input value using the provided input vector
+    /// </summary>
+    public void SetDirectionalInput(Vector2 input)
+    {
+        directionalInput = input;
+    }
+
+    public bool OnJumpInputDown()
+    {
+        bool jumping = false;
+
+        // Wall jump
+        if (wallSliding)
+        {
+            jumping = true;
+            if (Mathf.Abs(directionalInput.x) < 0.2f)
+            {
+                // Wall jump: Jump off
+                velocity.x = -wallDirX * wallJumpOff.x;
+                velocity.y = wallJumpOff.y;
+            }
+            else if (wallDirX == (int)Mathf.Sign(directionalInput.x))
+            {
+                // Wall jump: Climb jump (input towards wall)
+                velocity.x = -wallDirX * wallJumpClimb.x;
+                velocity.y = wallJumpClimb.y;
+            }
+            else
+            {
+                // Wall jump: Leap jump (input away from wall)
+                velocity.x = -wallDirX * wallJumpLeap.x;
+                velocity.y = wallJumpLeap.y;
+            }
+        }
+
+        // Regular jump from ground
+        else if (controller.collisions.below)
+        {
+            jumping = true;
+            velocity.y = maxJumpVelocity;
+        }
+
+        return jumping;
+    }
+
+    public void OnJumpInputUp()
+    {
+        // Variable jumping (only handled if no jump input and player was jumping)
+        if (velocity.y > minJumpVelocity)
+            velocity.y = minJumpVelocity;
+    }
+
+    void CalculateVelocity()
+    {
         // Apply horizontal movement from player input
-        float targetVelocityX = input.x * moveSpeed;
+        float targetVelocityX = directionalInput.x * moveSpeed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing,
             (controller.collisions.below ? accelerationTimeGrounded : accelerationTimeAirborne));
 
-        // Wall sliding behavior
-        int wallDirX = controller.collisions.left ? -1 : 1;
-        bool wallSliding = false;
+        // Apply gravity
+        velocity.y += gravity * Time.fixedDeltaTime;
+    }
+
+    void HandleWallSliding()
+    {
+        wallDirX = controller.collisions.left ? -1 : 1;
+        wallSliding = false;
         if ((controller.collisions.left || controller.collisions.right) && !controller.collisions.below && velocity.y < 0)
         {
             wallSliding = true;
@@ -76,7 +150,7 @@ public class PlayerScript : MonoBehaviour
                 velocityXSmoothing = 0;
 
                 // Count down only when input is away from the wall
-                if (wallDirX != (int)Mathf.Sign(input.x))
+                if (wallDirX != (int)Mathf.Sign(directionalInput.x))
                     timeToWallUnstick -= Time.fixedDeltaTime;
                 else
                     timeToWallUnstick = wallStickTime;
@@ -84,57 +158,5 @@ public class PlayerScript : MonoBehaviour
             else
                 timeToWallUnstick = wallStickTime;
         }
-
-        // Apply jump from player input
-        if (Input.GetAxisRaw("Jump") > 0.3f)
-        {
-            // Wall jump
-            if (wallSliding)
-            {
-                jumping = true;
-                if (Mathf.Abs(input.x) < 0.2f)
-                {
-                    // Wall jump: Jump off
-                    velocity.x = -wallDirX * wallJumpOff.x;
-                    velocity.y = wallJumpOff.y;
-                }
-                else if (wallDirX == (int)Mathf.Sign(input.x))
-                {
-                    // Wall jump: Climb jump (input towards wall)
-                    velocity.x = -wallDirX * wallJumpClimb.x;
-                    velocity.y = wallJumpClimb.y;
-                }
-                else
-                {
-                    // Wall jump: Leap jump (input away from wall)
-                    velocity.x = -wallDirX * wallJumpLeap.x;
-                    velocity.y = wallJumpLeap.y;
-                }
-            }
-
-            // Regular jump from ground
-            else if (controller.collisions.below)
-            {
-                jumping = true;
-                velocity.y = maxJumpVelocity;
-            }
-        }
-
-        // Variable jumping (only handled if no jump input and player was jumping)
-        else if (jumping) {
-            jumping = false;
-            if (velocity.y > minJumpVelocity)
-                velocity.y = minJumpVelocity;
-        }
-
-        // Apply gravity
-        velocity.y += gravity * Time.fixedDeltaTime;
-
-        // Attempt to move the player (and perform collision detection)
-        controller.Move(velocity * Time.fixedDeltaTime, input);
-
-        // Reset vertical velocity if a vertical collision occurs
-        if (controller.collisions.above || controller.collisions.below)
-            velocity.y = 0;
     }
 }

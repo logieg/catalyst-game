@@ -674,10 +674,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   followTarget: {fileID: 2029324218}
   verticalOffset: 0
-  lookAheadDistanceX: 2
+  lookAheadDistanceX: 1
   lookSmoothTimeX: 0.5
   lookSmoothTimeY: 0.15
-  focusAreaSize: {x: 2.5, y: 3.5}
+  focusAreaSize: {x: 0.5, y: 3}
 --- !u!1 &607722245
 GameObject:
   m_ObjectHideFlags: 0
@@ -1487,6 +1487,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 0
+  distanceBetweenRays: 0.25
   horizontalRayCount: 4
   verticalRayCount: 4
   horizontalRaySpacing: 0
@@ -1924,6 +1925,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 0
+  distanceBetweenRays: 0.25
   horizontalRayCount: 4
   verticalRayCount: 4
   horizontalRaySpacing: 0
@@ -2168,6 +2170,7 @@ GameObject:
   - component: {fileID: 2029324220}
   - component: {fileID: 2029324219}
   - component: {fileID: 2029324218}
+  - component: {fileID: 2029324222}
   - component: {fileID: 2029324217}
   m_Layer: 8
   m_Name: Player
@@ -2217,6 +2220,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 1
+  distanceBetweenRays: 0.15
   horizontalRayCount: 4
   verticalRayCount: 4
   horizontalRaySpacing: 0
@@ -2237,8 +2241,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8c53ef2c170b2445a97bb3ed1669d41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 6.5
-  maxJumpHeight: 3
+  moveSpeed: 6
+  maxJumpHeight: 2.5
   minJumpHeight: 1
   timeToJumpApex: 0.4
   accelerationTimeAirborne: 0.08
@@ -2247,7 +2251,7 @@ MonoBehaviour:
   wallJumpOff: {x: 9, y: 7}
   wallJumpLeap: {x: 10, y: 11}
   wallSlideSpeedMax: 2.2
-  wallStickTime: 0.2
+  wallStickTime: 0.15
 --- !u!212 &2029324220
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -2313,6 +2317,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2029324222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029324216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d828aa4df7f4de246aace8cbd10e952a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2081209181
 GameObject:
   m_ObjectHideFlags: 0
@@ -2342,6 +2358,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e4aad2af4a33b54484c081d3aac4d44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  paused: 0
+  playerAlive: 1
+  dialogueBox: {fileID: 0}
 --- !u!4 &2081209183
 Transform:
   m_ObjectHideFlags: 0
