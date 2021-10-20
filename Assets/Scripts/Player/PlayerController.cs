@@ -8,7 +8,6 @@ public class PlayerController : RaycastController
 {
     // The maximum angle of slope the player can climb or descend
     public float maxSlopeAngle = 38.0f;
-    public float maxDescendAngle = 38.0f;
 
     /// <summary>
     /// A struct containing the collision info in all four directions around the player
@@ -52,13 +51,13 @@ public class PlayerController : RaycastController
         collisions.moveAmountOld = moveAmount;
         playerInput = input;
 
-        // Update face direction
-        if (moveAmount.x != 0)
-            collisions.faceDirection = (int)Mathf.Sign(moveAmount.x);
-
         // Try handling slope descending if player is moving down
         if (moveAmount.y < 0)
             DescendSlope(ref moveAmount);
+
+        // Update face direction
+        if (moveAmount.x != 0)
+            collisions.faceDirection = (int)Mathf.Sign(moveAmount.x);
 
         // Handle collisions and update the movement amount if needed
         HorizontalCollisions(ref moveAmount);
@@ -125,7 +124,7 @@ public class PlayerController : RaycastController
                     }
 
                     // Perform the movement amount adjustments for the slope climb
-                    ClimbSlope(ref moveAmount, slopeAngle);
+                    ClimbSlope(ref moveAmount, slopeAngle, hit.normal);
                     moveAmount.x += distanceToSlopeStart * directionX;
                 }
 
@@ -221,6 +220,7 @@ public class PlayerController : RaycastController
                     // Snap to new slope, not old
                     moveAmount.x = (hit.distance - skinWidth) * directionX;
                     collisions.slopeAngle = slopeAngle;
+                    collisions.slopeNormal = hit.normal;
                 }
             }
         }
@@ -231,7 +231,8 @@ public class PlayerController : RaycastController
     /// </summary>
     /// <param name="moveAmount">A reference to the intended player movement vector</param>
     /// <param name="slopeAngle">The angle of the slope that was encountered</param>
-    void ClimbSlope(ref Vector2 moveAmount, float slopeAngle)
+    /// <param name="slopeNormal">The surface normal of the slope that was encountered</param>
+    void ClimbSlope(ref Vector2 moveAmount, float slopeAngle, Vector2 slopeNormal)
     {
         float moveDistance = Mathf.Abs(moveAmount.x);
         float climbMoveAmountY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
@@ -247,6 +248,7 @@ public class PlayerController : RaycastController
             collisions.below = true;
             collisions.climbingSlope = true;
             collisions.slopeAngle = slopeAngle;
+            collisions.slopeNormal = slopeNormal;
         }
     }
 
@@ -256,32 +258,70 @@ public class PlayerController : RaycastController
     /// <param name="moveAmount">A reference to the intended player movement vector</param>
     void DescendSlope(ref Vector2 moveAmount)
     {
-        // Cast a ray downward to detect a slope
-        float directionX = Mathf.Sign(moveAmount.x);
-        Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
-        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -Vector2.up, Mathf.Infinity, collisionMask);
+        // Check for maximum slope to slide down
+        RaycastHit2D maxSlopeHitLeft = Physics2D.Raycast(raycastOrigins.bottomLeft, Vector2.down, Mathf.Abs(moveAmount.y) + skinWidth, collisionMask);
+        RaycastHit2D maxSlopeHitRight = Physics2D.Raycast(raycastOrigins.bottomRight, Vector2.down, Mathf.Abs(moveAmount.y) + skinWidth, collisionMask);
 
+        // Only slide down if one side is in the air while the other is on the slope (exclusive-or)
+        if (maxSlopeHitLeft ^ maxSlopeHitRight)
+        {
+            SlideDownMaxSlope(maxSlopeHitLeft, ref moveAmount);
+            SlideDownMaxSlope(maxSlopeHitRight, ref moveAmount);
+        }
+
+        if (!collisions.slidingDownSlope)
+        {
+            // Cast a ray downward to detect a slope
+            float directionX = Mathf.Sign(moveAmount.x);
+            Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
+            RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -Vector2.up, Mathf.Infinity, collisionMask);
+
+            if (hit)
+            {
+                // Check that slope angle is descendable
+                float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                if (slopeAngle != 0 && slopeAngle <= maxSlopeAngle)
+                    // Check that slope is in the same direction as X movement
+                    if (Mathf.Sign(hit.normal.x) == directionX)
+                        // Check that distance to slope is close enough to descend
+                        if (hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(moveAmount.x))
+                        {
+                            // Adjust movement amount to descend the slope
+                            float moveDistance = Mathf.Abs(moveAmount.x);
+                            float descendMoveAmountY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+                            moveAmount.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(moveAmount.x);
+                            moveAmount.y -= descendMoveAmountY;
+
+                            // Update collision/slope info
+                            collisions.slopeAngle = slopeAngle;
+                            collisions.descendingSlope = true;
+                            collisions.below = true;
+                            collisions.slopeNormal = hit.normal;
+                        }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handle sliding down a slope steeper than the max slope angle
+    /// </summary>
+    /// <param name="hit">The raycast hit against the slope</param>
+    /// <param name="moveAmount">A reference to the intended player movement vector</param>
+    void SlideDownMaxSlope(RaycastHit2D hit, ref Vector2 moveAmount)
+    {
         if (hit)
         {
-            // Check that slope angle is descendable
             float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-            if (slopeAngle != 0 && slopeAngle <= maxDescendAngle)
-                // Check that slope is in the same direction as X movement
-                if (Mathf.Sign(hit.normal.x) == directionX)
-                    // Check that distance to slope is close enough to descend
-                    if (hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(moveAmount.x))
-                    {
-                        // Adjust movement amount to descend the slope
-                        float moveDistance = Mathf.Abs(moveAmount.x);
-                        float descendMoveAmountY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
-                        moveAmount.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(moveAmount.x);
-                        moveAmount.y -= descendMoveAmountY;
+            if (slopeAngle > maxSlopeAngle)
+            {
+                // Calculate the horizontal movement based on the slope angle and the surface normal (for direction)
+                moveAmount.x = Mathf.Abs(moveAmount.y - hit.distance) / Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * hit.normal.x;
 
-                        // Update collision/slope info
-                        collisions.slopeAngle = slopeAngle;
-                        collisions.descendingSlope = true;
-                        collisions.below = true;
-                    }
+                // Update collision/slope info
+                collisions.slopeAngle = slopeAngle;
+                collisions.slidingDownSlope = true;
+                collisions.slopeNormal = hit.normal;
+            }
         }
     }
 
@@ -300,15 +340,20 @@ public class PlayerController : RaycastController
     {
         public bool above, below;
         public bool left, right;
-        public bool climbingSlope, descendingSlope;
+
+        public bool climbingSlope, descendingSlope, slidingDownSlope;
         public float slopeAngle, slopeAngleOld;
+        public Vector2 slopeNormal;
+
         public Vector2 moveAmountOld;
         public int faceDirection;
         public bool fallingThroughPlatform;
+
         public void Reset() {
-            above = below = left = right = climbingSlope = descendingSlope = false;
+            above = below = left = right = climbingSlope = descendingSlope = slidingDownSlope = false;
             slopeAngleOld = slopeAngle;
             slopeAngle = 0;
+            slopeNormal = Vector2.zero;
         }
     }
 }

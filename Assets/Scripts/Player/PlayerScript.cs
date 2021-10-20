@@ -62,9 +62,12 @@ public class PlayerScript : MonoBehaviour
         // Attempt to move the player (and perform collision detection)
         controller.Move(velocity * Time.fixedDeltaTime, directionalInput);
 
-        // Reset vertical velocity if a vertical collision occurs
+        // Reset vertical velocity if a vertical collision occurs (and player isn't sliding down a slope)
         if (controller.collisions.above || controller.collisions.below)
-            velocity.y = 0;
+            if (controller.collisions.slidingDownSlope)
+                velocity.y += controller.collisions.slopeNormal.y * -gravity * Time.fixedDeltaTime; // Slope-sliding acceleration
+            else
+                velocity.y = 0;
     }
 
     /// <summary>
@@ -103,11 +106,26 @@ public class PlayerScript : MonoBehaviour
             }
         }
 
-        // Regular jump from ground
+        // Regular jump
         else if (controller.collisions.below)
         {
-            jumping = true;
-            velocity.y = maxJumpVelocity;
+            // Handle jumping off from a slope (sliding down)
+            if (controller.collisions.slidingDownSlope)
+            {
+                // Check if jumping away from the slope (or jumping in place)
+                if (Mathf.Abs(directionalInput.x) < 0.1f || Mathf.Sign(directionalInput.x) != -Mathf.Sign(controller.collisions.slopeNormal.x))
+                {
+                    jumping = true;
+                    velocity.y = maxJumpVelocity * controller.collisions.slopeNormal.y;
+                    velocity.x = maxJumpVelocity * controller.collisions.slopeNormal.x;
+                }
+            }
+            else
+            {
+                // Jumping from the ground
+                jumping = true;
+                velocity.y = maxJumpVelocity;
+            }
         }
 
         return jumping;
