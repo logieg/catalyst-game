@@ -4,41 +4,41 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Manages static game variables and globally-accessible operations
+/// Manages game state and global functionality
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    // The single global GameManager instance across levels (singleton)
+    // The global GameManager instance across levels (singleton)
     private static GameManager _instance = null;
+    
+    // Game state variables
+    [HideInInspector]
+    public bool paused = false;
+    [HideInInspector]
+    public bool playerAlive = true;
+
+    // Globally-accessible resources
+    [HideInInspector]
+    public DialogueBoxScript dialogueBox;
 
     private void Awake()
     {
         // Destroy any duplicate GameManager a level might load with
         if (_instance != null && _instance != this)
             Destroy(gameObject);
-        else
-        {
+        else {
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
+    void Start() { }
 
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    void Update() { }
 
     /// <summary>
-    /// Get the currently active static GameManager instance
+    /// Get the currently active GameManager instance
     /// </summary>
-    /// <returns>The active static GameManager instance</returns>
     public static GameManager GetInstance()
     {
         return _instance;
