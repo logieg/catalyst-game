@@ -143,6 +143,8 @@ public class PlayerController : RaycastController
                     // Set collision info
                     collisions.left = directionX == -1;
                     collisions.right = directionX == 1;
+                    if (hit.collider.CompareTag("WallSlide"))
+                        collisions.canWallSlide = true;
                 }
             }
         }
@@ -348,9 +350,10 @@ public class PlayerController : RaycastController
         public Vector2 moveAmountOld;
         public int faceDirection;
         public bool fallingThroughPlatform;
+        public bool canWallSlide;
 
         public void Reset() {
-            above = below = left = right = climbingSlope = descendingSlope = slidingDownSlope = false;
+            above = below = left = right = climbingSlope = descendingSlope = slidingDownSlope = canWallSlide = false;
             slopeAngleOld = slopeAngle;
             slopeAngle = 0;
             slopeNormal = Vector2.zero;

@@ -461,7 +461,7 @@ GameObject:
   - component: {fileID: 360263893}
   m_Layer: 0
   m_Name: TestQuad
-  m_TagString: Untagged
+  m_TagString: WallSlide
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -692,7 +692,7 @@ GameObject:
   - component: {fileID: 607722247}
   m_Layer: 0
   m_Name: TestQuad
-  m_TagString: Untagged
+  m_TagString: WallSlide
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1344,7 +1344,7 @@ GameObject:
   - component: {fileID: 739170467}
   m_Layer: 0
   m_Name: TestQuad
-  m_TagString: Untagged
+  m_TagString: WallSlide
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

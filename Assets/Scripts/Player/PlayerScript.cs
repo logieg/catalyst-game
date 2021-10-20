@@ -153,7 +153,7 @@ public class PlayerScript : MonoBehaviour
     {
         wallDirX = controller.collisions.left ? -1 : 1;
         wallSliding = false;
-        if ((controller.collisions.left || controller.collisions.right) && !controller.collisions.below && velocity.y < 0)
+        if ((controller.collisions.left || controller.collisions.right) && !controller.collisions.below && velocity.y < 0 && controller.collisions.canWallSlide)
         {
             wallSliding = true;
 
