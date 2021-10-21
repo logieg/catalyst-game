@@ -16,4 +16,6 @@ public class MusicScript : MonoBehaviour
         music.clip = songToPlay;
         music.Play();
     }
+
+    // TODO - dontdestroyonload the music manager, transition between tracks
 }

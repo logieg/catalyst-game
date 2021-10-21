@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -15,7 +16,6 @@ public class InGameUIScript : MonoBehaviour
     public Button quitButton;
     public Slider volumeSlider;
 
-    // Start is called before the first frame update
     void Start()
     {
         // Start unpaused
@@ -29,7 +29,6 @@ public class InGameUIScript : MonoBehaviour
         volumeSlider.onValueChanged.AddListener(ChangeVolume);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetButtonDown("Pause"))
@@ -71,14 +70,11 @@ public class InGameUIScript : MonoBehaviour
         TogglePause();
     }
 
-    // Quit the game when Quit is clicked
+    // Escape to the main menu when Quit is clicked
     void QuitClicked()
     {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+        TogglePause();
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Change the global game volume

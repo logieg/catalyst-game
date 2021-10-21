@@ -1,13 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class MainMenuScript : MonoBehaviour
+/// <summary>
+/// Manages the main menu UI
+/// </summary>
+public class MainMenuUIScript : MonoBehaviour
 {
     public Button startButton;
     public Button quitButton;
+    public Slider volumeSlider;
 
     // Start is called before the first frame update
     void Start()
@@ -15,22 +17,35 @@ public class MainMenuScript : MonoBehaviour
         // Set up buttons
         startButton.onClick.AddListener(StartClicked);
         quitButton.onClick.AddListener(QuitClicked);
+        volumeSlider.onValueChanged.AddListener(ChangeVolume);
+
+        startButton.Select();
     }
 
-    // Start the game
+    void Update() { }
+
+    // Launch the player into the game
     void StartClicked()
     {
-        SceneManager.LoadScene("PuzzleMap");
+        SceneManager.LoadScene("Town");
+
+        // TODO - load correct level/position from save
     }
 
     // Quit the game when Quit is clicked
     void QuitClicked()
     {
-        // Player doesn't want to play anymore :c
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
         Application.Quit();
 #endif
+    }
+
+    // Change the global game volume
+    void ChangeVolume(float vol)
+    {
+        AudioListener.volume = vol;
+        GameManager.GetInstance().volume = vol;
     }
 }
