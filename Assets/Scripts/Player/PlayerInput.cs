@@ -21,8 +21,8 @@ public class PlayerInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Block jumping if the game is paused
-        if (GameManager.GetInstance().paused)
+        // Block jumping if the game is paused or dialogue is open
+        if (GameManager.GetInstance().paused || GameManager.GetInstance().dialogueBox.isOpen)
             jumpBlocked = true;
 
         // Get the directional input from the player (without smoothing)
@@ -32,7 +32,7 @@ public class PlayerInput : MonoBehaviour
         // Handle jump input down
         if (Input.GetButton("Jump"))
         {
-            if (!jumping && !jumpBlocked && !GameManager.GetInstance().dialogueBox.isOpen)
+            if (!jumping && !jumpBlocked)
                 jumping = player.OnJumpInputDown();
         }
 
@@ -44,7 +44,7 @@ public class PlayerInput : MonoBehaviour
         }
 
         // Unblock jumping
-        if (Input.GetButtonUp("Jump") || Input.GetButtonUp("Pause"))
+        if (Input.GetButtonUp("Jump") || Input.GetButtonUp("Pause") || Input.GetButtonUp("Interact"))
             jumpBlocked = false;
     }
 }

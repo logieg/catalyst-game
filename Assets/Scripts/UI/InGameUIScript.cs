@@ -53,7 +53,8 @@ public class InGameUIScript : MonoBehaviour
         {
             pauseGroup.interactable = false;
             pauseGroup.alpha = 0;
-            Time.timeScale = 1.0f;
+            if (!GameManager.GetInstance().dialogueBox.isOpen)
+                Time.timeScale = 1.0f;
             isPaused = false;
             EventSystem.current.SetSelectedGameObject(null); // To fix buttons staying selected after unpausing
         }

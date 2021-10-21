@@ -47,7 +47,7 @@ public class DialogueScript : MonoBehaviour
     void Update()
     {
         // Check for continue key and handle continuing or closing the dialogue
-        if (dialogueReady && Input.GetButtonDown("Interact") && dialogueBox.isOpen)
+        if (dialogueReady && (Input.GetButtonDown("Interact") || Input.GetButtonDown("Jump")) && dialogueBox.isOpen && !GameManager.GetInstance().paused)
         {
             currentPos++;
             if (currentPos > endPos)
