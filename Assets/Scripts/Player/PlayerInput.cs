@@ -21,7 +21,7 @@ public class PlayerInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Block jumping if the game was paused
+        // Block jumping if the game is paused
         if (GameManager.GetInstance().paused)
             jumpBlocked = true;
 
@@ -32,7 +32,7 @@ public class PlayerInput : MonoBehaviour
         // Handle jump input down
         if (Input.GetButton("Jump"))
         {
-            if (!jumping && !jumpBlocked)
+            if (!jumping && !jumpBlocked && !GameManager.GetInstance().dialogueBox.isOpen)
                 jumping = player.OnJumpInputDown();
         }
 

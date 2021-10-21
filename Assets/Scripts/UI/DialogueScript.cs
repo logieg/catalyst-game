@@ -1,5 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Handles dialogue functionality for a specific dialogue file
@@ -20,28 +21,40 @@ public class DialogueScript : MonoBehaviour
     // NOTE: Currently unused, but might be useful in the future
     private string[] currentLines;
 
+    private bool dialogueReady;
+
     private UnityEngine.Events.UnityAction callback = null;
 
     // Start is called before the first frame update
     void Start()
     {
-        dialogueBox = GameManager.GetInstance().dialogueBox;
-
         // Load the dialogue lines from the dictionary file
         lines = dialogueDictionary.text.Split('\n');
+
+        StartCoroutine(LateStart());
+    }
+
+    // LateStart is called the frame after Start
+    IEnumerator LateStart()
+    {
+        yield return new WaitForSeconds(0.001f);
+
+        // Retrieve the global dialogue box from the game manager
+        dialogueBox = GameManager.GetInstance().dialogueBox;
     }
 
     // Update is called once per frame
     void Update()
     {
         // Check for continue key and handle continuing or closing the dialogue
-        if (Input.GetButtonDown("Jump") && dialogueBox.isOpen)
+        if (dialogueReady && Input.GetButtonDown("Interact") && dialogueBox.isOpen)
         {
             currentPos++;
             if (currentPos > endPos)
             {
                 // Dialogue done; close the box and unfreeze time
                 dialogueBox.SetVisible(false);
+                dialogueReady = false;
                 Time.timeScale = 1.0f;
 
                 // Invoke a pending callback if one has been set
@@ -57,6 +70,10 @@ public class DialogueScript : MonoBehaviour
                 dialogueBox.SetText(lines[currentPos]);
             }
         }
+
+        // Skip the first frame of dialogue being open to avoid input issues
+        if (dialogueBox != null && dialogueBox.isOpen)
+            dialogueReady = true;
 
         // TODO - Timer-based single-character output (typing effect)
     }
