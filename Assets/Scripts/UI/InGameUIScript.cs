@@ -1,8 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages in-game UI, including HUD elements and pause menu
+/// </summary>
 public class InGameUIScript : MonoBehaviour
 {
     public CanvasGroup pauseGroup;
@@ -12,8 +14,6 @@ public class InGameUIScript : MonoBehaviour
     public Button continueButton;
     public Button quitButton;
     public Slider volumeSlider;
-
-    public Text characterText;
 
     // Start is called before the first frame update
     void Start()
@@ -47,6 +47,7 @@ public class InGameUIScript : MonoBehaviour
             pauseGroup.alpha = 1;
             Time.timeScale = 0.0f;
             isPaused = true;
+            continueButton.Select();
             print("Game paused!");
         }
         else
@@ -55,7 +56,13 @@ public class InGameUIScript : MonoBehaviour
             pauseGroup.alpha = 0;
             Time.timeScale = 1.0f;
             isPaused = false;
+            EventSystem.current.SetSelectedGameObject(null); // To fix buttons staying selected after unpausing
         }
+
+        // TODO - slide in/out animation
+
+        // Update global pause state
+        GameManager.GetInstance().paused = isPaused;
     }
 
     // Just unpause the game to continue
@@ -67,20 +74,17 @@ public class InGameUIScript : MonoBehaviour
     // Quit the game when Quit is clicked
     void QuitClicked()
     {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
-        print("Game quit called");
+#endif
     }
 
     // Change the global game volume
     void ChangeVolume(float vol)
     {
         AudioListener.volume = vol;
-    }
-
-    // Change the character label and color
-    public void SetCharacterText(string name, Color color)
-    {
-        characterText.text = name;
-        characterText.color = color;
+        GameManager.GetInstance().volume = vol;
     }
 }

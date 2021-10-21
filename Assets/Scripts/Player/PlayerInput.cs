@@ -10,6 +10,7 @@ public class PlayerInput : MonoBehaviour
     PlayerScript player;
 
     bool jumping;
+    bool jumpBlocked;
 
     // Start is called before the first frame update
     void Start()
@@ -20,14 +21,18 @@ public class PlayerInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Block jumping if the game was paused
+        if (GameManager.GetInstance().paused)
+            jumpBlocked = true;
+
         // Get the directional input from the player (without smoothing)
         Vector2 directionalInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         player.SetDirectionalInput(directionalInput);
 
         // Handle jump input down
-        if (Input.GetAxisRaw("Jump") > 0.3f)
+        if (Input.GetButton("Jump"))
         {
-            if (!jumping)
+            if (!jumping && !jumpBlocked)
                 jumping = player.OnJumpInputDown();
         }
 
@@ -37,5 +42,9 @@ public class PlayerInput : MonoBehaviour
             jumping = false;
             player.OnJumpInputUp();
         }
+
+        // Unblock jumping
+        if (Input.GetButtonUp("Jump") || Input.GetButtonUp("Pause"))
+            jumpBlocked = false;
     }
 }

@@ -10,8 +10,10 @@ public class GameManager : MonoBehaviour
 {
     // The global GameManager instance across levels (singleton)
     private static GameManager _instance = null;
-    
+
     // Game state variables
+    [HideInInspector]
+    public float volume = 1.0f;
     [HideInInspector]
     public bool paused = false;
     [HideInInspector]
@@ -32,7 +34,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void Start() { }
+    void Start()
+    {
+        // Ensure level volume matches previous level
+        AudioListener.volume = volume;
+    }
 
     void Update() { }
 
