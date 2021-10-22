@@ -1,9 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Handles dialogue functionality for a specific dialogue file
+/// <br/><br/>
+/// In a dialogue file:<br/>
+/// '#' denotes a section tag<br/>
+/// '~' sets a dialogue completion flag<br/>
+/// '~-' unsets a dialogue completion flag<br/>
+/// '@' denotes the next section tag to change to when done
 /// </summary>
 public class DialogueScript : MonoBehaviour
 {
@@ -11,25 +18,44 @@ public class DialogueScript : MonoBehaviour
     private DialogueBoxScript dialogueBox;
 
     [Tooltip("The text file containing all the lines of dialogue for this instance of the script")]
-    public TextAsset dialogueDictionary;
+    public TextAsset dialogueFile;
 
-    // The start, end, and current points for the currently open dialogue text
-    private int startPos, endPos, currentPos;
-    // The set of all dialogue lines in the dictionary
-    private string[] lines;
+    // Section/position locators for the currently open dialogue text
+    private string currentSectionTag = "";
+    private int currentPos;
+
+    // The set of all dialogue lines in the dictionary, organized into tagged sections
+    private Dictionary<string, List<string>> sections = new Dictionary<string, List<string>>();
+
     // The set of lines currently being shown in the dialogue box
-    // NOTE: Currently unused, but might be useful in the future
-    private string[] currentLines;
+    private List<string> currentLines;
 
     private bool dialogueReady;
 
     private UnityEngine.Events.UnityAction callback = null;
 
-    // Start is called before the first frame update
+    // Initialize
     void Start()
     {
-        // Load the dialogue lines from the dictionary file
-        lines = dialogueDictionary.text.Split('\n');
+        // Load all dialogue lines from the dictionary file
+        string[] lines = dialogueFile.text.Split('\n');
+
+        // Build tagged dialogue sections from the lines
+        string sectionTag = "";
+        foreach (string l in lines)
+        {
+            string line = l.TrimEnd(); // Clean trailing whitespace chars
+            if (line.StartsWith("#"))
+            {
+                sectionTag = line.Substring(1);
+                sections.Add(sectionTag, new List<string>());
+            }
+            else if (line != "")
+            {
+                // Swap manual newlines with real linebreaks while adding
+                sections[sectionTag].Add(line.Replace("\\n", "\n"));
+            }
+        }
 
         StartCoroutine(LateStart());
     }
@@ -43,14 +69,13 @@ public class DialogueScript : MonoBehaviour
         dialogueBox = GameManager.GetInstance().dialogueBox;
     }
 
-    // Update is called once per frame
     void Update()
     {
         // Check for continue key and handle continuing or closing the dialogue
         if (dialogueReady && (Input.GetButtonDown("Interact") || Input.GetButtonDown("Jump")) && dialogueBox.isOpen && !GameManager.GetInstance().paused)
         {
             currentPos++;
-            if (currentPos > endPos)
+            if (currentPos > currentLines.Count - 1)
             {
                 // Dialogue done; close the box and unfreeze time
                 dialogueBox.SetVisible(false);
@@ -67,7 +92,7 @@ public class DialogueScript : MonoBehaviour
             else
             {
                 // Show the next line of dialogue
-                dialogueBox.SetText(lines[currentPos]);
+                dialogueBox.SetText(currentLines[currentPos]);
             }
         }
 
@@ -79,30 +104,55 @@ public class DialogueScript : MonoBehaviour
     }
 
     /// <summary>
-    /// Open the dialogue box and show the specified range of messages from the dictionary
+    /// Open the dialogue box and show the specified section of lines from the dictionary
     /// </summary>
-    /// <param name="start">The line number in the dictionary to start with</param>
-    /// <param name="end">The line number in the dictionary to end with</param>
+    /// <param name="sectionTag">The tag for the section of lines in the dictionary to show</param>
     /// <param name="doneAction">Optional callback action for when the dialogue is done</param>
-    public void ShowDialogue(int start, int end, UnityEngine.Events.UnityAction doneAction = null)
+    /// <returns>The tag of the next section to change to, if known</returns>
+    public string ShowDialogue(string sectionTag, UnityEngine.Events.UnityAction doneAction = null)
     {
-        // Update positions (indexes)
-        startPos = start - 1;
-        endPos = end - 1;
-        currentPos = startPos;
+        // Update locators
+        currentSectionTag = sectionTag;
+        currentPos = 0;
 
         // Get the set of current lines
-        currentLines = new string[end - start + 1];
-        for (int i = 0; i < currentLines.Length; i++)
-            currentLines[i] = lines[startPos + i];
+        currentLines = new List<string>();
+
+        // Search for dialogue commands
+        string nextTag = "";
+        foreach (string line in sections[currentSectionTag])
+        {
+            // Unset dialogue flag
+            if (line.StartsWith("~-"))
+            {
+                GameManager.GetInstance().dialogueFlags.Remove(line.Substring(2));
+            }
+            // Set dialogue flag
+            else if (line.StartsWith("~"))
+            {
+                GameManager.GetInstance().dialogueFlags.Add(line.Substring(1));
+            }
+            // Next section tag
+            else if (line.StartsWith("@"))
+            {
+                nextTag = line.Substring(1);
+            }
+            // Not a command, add to displayable lines
+            else
+            {
+                currentLines.Add(line);
+            }
+        }
 
         // Open the dialogue box
-        dialogueBox.SetText(lines[currentPos]);
+        dialogueBox.SetText(currentLines[currentPos]);
         dialogueBox.SetVisible(true);
 
         // Freeze time while dialogue box is open
         Time.timeScale = 0.0f;
 
         callback = doneAction;
+
+        return nextTag;
     }
 }

@@ -20,6 +20,12 @@ public class DialogueBoxScript : MonoBehaviour
     [HideInInspector]
     public bool isOpen { get; private set; }
 
+    /// <summary>
+    /// Whether the dialogue box is able to be opened (to prevent immediate reopening upon close)
+    /// </summary>
+    [HideInInspector]
+    public bool canOpen { get; private set; }
+
     void Start()
     {
         // Make dialogue box globally accessible
@@ -36,6 +42,12 @@ public class DialogueBoxScript : MonoBehaviour
 
     void Update() { }
 
+    void LateUpdate()
+    {
+        if (!isOpen)
+            canOpen = true;
+    }
+
     /// <summary>
     /// Set the dialogue box's inner text
     /// </summary>
@@ -51,5 +63,6 @@ public class DialogueBoxScript : MonoBehaviour
     {
         dialogueGroup.alpha = visible ? 1 : 0;
         isOpen = visible ? true : false;
+        canOpen = false;
     }
 }

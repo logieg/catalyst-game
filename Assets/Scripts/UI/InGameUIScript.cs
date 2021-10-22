@@ -75,6 +75,7 @@ public class InGameUIScript : MonoBehaviour
     void QuitClicked()
     {
         TogglePause();
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene("MainMenu");
     }
 

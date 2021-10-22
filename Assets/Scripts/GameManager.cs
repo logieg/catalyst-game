@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviour
     public bool paused = false;
     [HideInInspector]
     public bool playerAlive = true;
+    [HideInInspector]
+    public List<string> dialogueFlags = new List<string>();
 
     // Globally-accessible resources
     [HideInInspector]

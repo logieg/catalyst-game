@@ -1,4 +1,46 @@
-Hey there!
+#greeting
+
+Hey hey!
 Are you that fella who got cast out from the warrior's guild?
 ...
-I mean, uh, you seem nice either way!  I was just curious.
+I mean, you seem nice either way! I was just curious.
+@request
+
+
+#request
+
+Hey hey!
+Could I ask you something, fella?\nI know you're busy, but... well...
+I lost my house key.
+Could you, um, see if you can help me find it? Please?
+I've looked all over the roof and it's not here. If you can help I'd be so grateful!
+~keysearch
+
+#searching
+
+Hey hey!
+Did you find the house key? No? That's fine, I'm sure it'll turn up. Hopefully...
+My cat's probably starving by now...
+
+#findkey
+
+Hm?\nThere's a metalic glint under the bush.
+It looks like a small door key.\nMaybe it's the key that was lost?
+~-keysearch
+~keyfound
+
+#keyfound
+
+Oh! You found it!
+Thank you so much! I can finally feed my cat!
+Poor thing has been stuck inside all day while I've made a fool of myself losing something so important.
+~-keyfound
+~keycomplete
+
+
+#grateful
+
+Hey hey!
+Thanks again for finding my key, fella! Nobody else thought it was worth their time.
+My cat could have starved if it weren't for you, and she's my little ray of sunshine in these dark times.
+So... I mean it when I say you have my sincerest gratitude.
