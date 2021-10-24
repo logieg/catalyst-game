@@ -41,7 +41,7 @@ public class PlayerInput : MonoBehaviour
             // SFX!
             if (jumping && !jumpSoundPlayed)
             {
-                SoundEffectScript.PlaySoundEffect(jumpSound, 0.5f, transform.position);
+                SoundEffectScript.PlaySoundEffect(jumpSound, 0.55f, transform.position);
                 jumpSoundPlayed = true;
             }
         }
