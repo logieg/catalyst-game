@@ -11,6 +11,8 @@ public class MainMenuUIScript : MonoBehaviour
     public Button quitButton;
     public Slider volumeSlider;
 
+    public AudioClip startSound;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -27,6 +29,9 @@ public class MainMenuUIScript : MonoBehaviour
     // Launch the player into the game
     void StartClicked()
     {
+        if (startSound != null)
+            GameManager.PlayFlatSfx(startSound, 0.25f);
+
         SceneManager.LoadScene("Town");
 
         // TODO - load correct level/position from save

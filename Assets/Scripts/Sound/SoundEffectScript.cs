@@ -12,6 +12,7 @@ public class SoundEffectScript : MonoBehaviour
 {
     public AudioClip clip;
     public AudioSource source;
+    public float volume = 1.0f;
     private bool played = false;
 
     // Start is called before the first frame update
@@ -20,7 +21,6 @@ public class SoundEffectScript : MonoBehaviour
         // Setup for playing the sound effect
         source = gameObject.AddComponent<AudioSource>();
         source.spatialBlend = 0.8f;
-        source.volume = 1.0f;
     }
 
     // Update is called once per frame
@@ -34,13 +34,14 @@ public class SoundEffectScript : MonoBehaviour
     // Play the sound
     public void Play()
     {
-        StartCoroutine(RealPlay());
+        StartCoroutine(PlayNextFrame());
     }
 
     // Play the sound after a momentary delay (to allow the AudioSource to be initialized properly)
-    private IEnumerator RealPlay()
+    private IEnumerator PlayNextFrame()
     {
         yield return new WaitForSeconds(0.01f);
+        source.volume = volume;
         if (clip != null)
             source.PlayOneShot(clip);
         played = true;
@@ -48,15 +49,17 @@ public class SoundEffectScript : MonoBehaviour
 
     /// <summary>
     /// Static method to easily play a sound effect at the speficied location in world coordinates
+    /// <br/>
+    /// Note: Sound will only play when time isn't frozen
     /// </summary>
     /// <param name="position">The world location at which to play the sound effect</param>
-    /// <param name="clip">The sound clip to play</param>
-    public static void PlaySoundEffect(Vector3 position, AudioClip clip)
+    public static void PlaySoundEffect(AudioClip clip, float volume, Vector3 position)
     {
         GameObject soundObject = new GameObject("SoundEffect");
         soundObject.transform.position = position;
         SoundEffectScript effect = soundObject.AddComponent<SoundEffectScript>();
         effect.clip = clip;
+        effect.volume = volume;
         effect.Play();
     }
 }

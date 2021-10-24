@@ -41,6 +41,6 @@ public class ItemScript : MonoBehaviour
         velocity = velocityMax;
         GetComponent<CapsuleCollider>().enabled = false;
         if (collectSound != null)
-            SoundEffectScript.PlaySoundEffect(transform.position, collectSound);
+            SoundEffectScript.PlaySoundEffect(collectSound, 1.0f, transform.position);
     }
 }

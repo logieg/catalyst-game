@@ -7,6 +7,9 @@
 [RequireComponent (typeof (PlayerScript))]
 public class PlayerInput : MonoBehaviour
 {
+    public AudioClip jumpSound;
+    private bool jumpSoundPlayed;
+
     PlayerScript player;
 
     bool jumping;
@@ -34,12 +37,20 @@ public class PlayerInput : MonoBehaviour
         {
             if (!jumping && !jumpBlocked)
                 jumping = player.OnJumpInputDown();
+
+            // SFX!
+            if (jumping && !jumpSoundPlayed)
+            {
+                SoundEffectScript.PlaySoundEffect(jumpSound, 0.5f, transform.position);
+                jumpSoundPlayed = true;
+            }
         }
 
         // Handle jump input released (only during a jump)
         else if (jumping)
         {
             jumping = false;
+            jumpSoundPlayed = false;
             player.OnJumpInputUp();
         }
 

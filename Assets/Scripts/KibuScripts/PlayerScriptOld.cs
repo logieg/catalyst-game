@@ -60,7 +60,7 @@ public class PlayerScriptOld : MonoBehaviour
 
             // Play jumping sound effect
             if (jumpSound != null)
-                SoundEffectScript.PlaySoundEffect(transform.position, jumpSound);
+                SoundEffectScript.PlaySoundEffect(jumpSound, 1.0f, transform.position);
         }
 
         // Horizontal movement
@@ -110,7 +110,7 @@ public class PlayerScriptOld : MonoBehaviour
 
         // Death sound effect
         if (deathSound != null)
-            SoundEffectScript.PlaySoundEffect(transform.position, deathSound);
+            SoundEffectScript.PlaySoundEffect(deathSound, 1.0f, transform.position);
 
         // Make a pixel blood splash effect for a dramatic death
         ParticleEffectScript.Splash(bloodParticlePrefab, transform, 25, 0.1f, 75.0f, 75.0f, 300.0f);

@@ -16,6 +16,9 @@ public class InGameUIScript : MonoBehaviour
     public Button quitButton;
     public Slider volumeSlider;
 
+    public AudioClip openSound;
+    public AudioClip closeSound;
+
     void Start()
     {
         // Start unpaused
@@ -27,6 +30,7 @@ public class InGameUIScript : MonoBehaviour
         continueButton.onClick.AddListener(ContinueClicked);
         quitButton.onClick.AddListener(QuitClicked);
         volumeSlider.onValueChanged.AddListener(ChangeVolume);
+        volumeSlider.value = GameManager.GetInstance().volume;
     }
 
     void Update()
@@ -47,7 +51,9 @@ public class InGameUIScript : MonoBehaviour
             Time.timeScale = 0.0f;
             isPaused = true;
             continueButton.Select();
-            print("Game paused!");
+            if (openSound != null)
+                GameManager.PlayFlatSfx(openSound, 0.25f);
+            Debug.Log("Game paused!");
         }
         else
         {
@@ -57,6 +63,8 @@ public class InGameUIScript : MonoBehaviour
                 Time.timeScale = 1.0f;
             isPaused = false;
             EventSystem.current.SetSelectedGameObject(null); // To fix buttons staying selected after unpausing
+            if (closeSound != null)
+                GameManager.PlayFlatSfx(closeSound, 0.25f);
         }
 
         // TODO - slide in/out animation

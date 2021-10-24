@@ -14,6 +14,9 @@ public class DialogueBoxScript : MonoBehaviour
     private CanvasGroup dialogueGroup; // For changing dialogue box visibility
     private Text dialogueText;
 
+    [Tooltip("The sound to play when starting or progressing dialogue")]
+    public AudioClip dialogueSelectSound;
+
     /// <summary>
     /// Whether the dialogue box is currently open or not
     /// </summary>
@@ -64,5 +67,16 @@ public class DialogueBoxScript : MonoBehaviour
         dialogueGroup.alpha = visible ? 1 : 0;
         isOpen = visible ? true : false;
         canOpen = false;
+    }
+
+    /// <summary>
+    /// Play the pre-configured dialogue select sound (if set)
+    /// </summary>
+    public void PlaySelectSound()
+    {
+        if (dialogueSelectSound != null)
+        {
+            GameManager.PlayFlatSfx(dialogueSelectSound, 0.25f);
+        }
     }
 }

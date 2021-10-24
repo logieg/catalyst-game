@@ -178,6 +178,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a202638f9d08784428afe343661846ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dialogueSelectSound: {fileID: 8300000, guid: 043d462966b59084fb31f6149425f28b, type: 3}
 --- !u!1 &4068440119788494597
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,6 +1152,8 @@ MonoBehaviour:
   continueButton: {fileID: 8594598967251040079}
   quitButton: {fileID: 8594598967088680154}
   volumeSlider: {fileID: 8594598966974717891}
+  openSound: {fileID: 8300000, guid: 02af5ddbd1284724ebc6309c0d0e0e11, type: 3}
+  closeSound: {fileID: 8300000, guid: 043d462966b59084fb31f6149425f28b, type: 3}
 --- !u!1 &8594598966714031813
 GameObject:
   m_ObjectHideFlags: 0

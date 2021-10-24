@@ -94,6 +94,8 @@ public class DialogueScript : MonoBehaviour
                 // Show the next line of dialogue
                 dialogueBox.SetText(currentLines[currentPos]);
             }
+            // SFX!
+            dialogueBox.PlaySelectSound();
         }
 
         // Skip the first frame of dialogue being open to avoid input issues
@@ -147,6 +149,7 @@ public class DialogueScript : MonoBehaviour
         // Open the dialogue box
         dialogueBox.SetText(currentLines[currentPos]);
         dialogueBox.SetVisible(true);
+        dialogueBox.PlaySelectSound();
 
         // Freeze time while dialogue box is open
         Time.timeScale = 0.0f;
