@@ -79,6 +79,8 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: 376d4db0e450d674cb169ea155a2a19d, type: 2}
   - m_RefCount: 1
     m_Data: {fileID: 11400000, guid: a8323c4b9b04bbd4cbb31f977540ac79, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
   - m_RefCount: 1
     m_Data: {fileID: -2337825519663665045, guid: 2488abd7fa4fbf2468b859af9ed8576f, type: 3}
@@ -86,6 +88,8 @@ Tilemap:
     m_Data: {fileID: -63492140072632725, guid: 2488abd7fa4fbf2468b859af9ed8576f, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: -4156181766899730507, guid: 2488abd7fa4fbf2468b859af9ed8576f, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileMatrixArray:
   - m_RefCount: 0
     m_Data:
@@ -125,30 +129,30 @@ Tilemap:
       e33: 1
   - m_RefCount: 0
     m_Data:
-      e00: 9.511884e+24
-      e01: NaN
-      e02: 0
-      e03: 9.5118745e+24
-      e10: 3.36e-43
-      e11: NaN
-      e12: 7.34684e-40
-      e13: 3.36e-43
-      e20: 0
-      e21: 0
-      e22: -48399744
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 4.5904e-41
-      e33: 0
+      e00: 2.5244127e-29
+      e01: -4.0996372e+10
+      e02: -4.099277e+10
+      e03: -4.099277e+10
+      e10: 9.29e-43
+      e11: 3.49e-43
+      e12: 3.49e-43
+      e13: 3.49e-43
+      e20: -1.0090562e+16
+      e21: 1.8487621e-26
+      e22: -9.0124574e-10
+      e23: 1.8487621e-26
+      e30: 4.5905e-41
+      e31: 9.29e-43
+      e32: 9.28e-43
+      e33: 9.29e-43
   m_TileColorArray:
   - m_RefCount: 3
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Origin: {x: -2, y: 0, z: 0}
-  m_Size: {x: 3, y: 1, z: 1}
+  m_Origin: {x: -4, y: 0, z: 0}
+  m_Size: {x: 5, y: 1, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
@@ -260,7 +264,7 @@ Grid:
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 0
   m_CellSwizzle: 0
---- !u!114 &871215420517705148
+--- !u!114 &6793132007384244049
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -273,3 +277,5 @@ MonoBehaviour:
   m_Name: Palette Settings
   m_EditorClassIdentifier: 
   cellSizing: 100
+  m_TransparencySortMode: 0
+  m_TransparencySortAxis: {x: 0, y: 0, z: 1}
