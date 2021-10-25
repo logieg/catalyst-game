@@ -31,6 +31,7 @@ public class DialogueScript : MonoBehaviour
     private List<string> currentLines;
 
     private bool dialogueReady;
+    private bool dialogueActive; // Whether this specific dialogue script is being used
 
     private UnityEngine.Events.UnityAction callback = null;
 
@@ -72,7 +73,7 @@ public class DialogueScript : MonoBehaviour
     void Update()
     {
         // Check for continue key and handle continuing or closing the dialogue
-        if (dialogueReady && (Input.GetButtonDown("Interact") || Input.GetButtonDown("Jump")) && dialogueBox.isOpen && !GameManager.GetInstance().paused)
+        if (dialogueReady && dialogueActive && (Input.GetButtonDown("Interact") || Input.GetButtonDown("Jump")) && dialogueBox.isOpen && !GameManager.GetInstance().paused)
         {
             currentPos++;
             if (currentPos > currentLines.Count - 1)
@@ -80,6 +81,7 @@ public class DialogueScript : MonoBehaviour
                 // Dialogue done; close the box and unfreeze time
                 dialogueBox.SetVisible(false);
                 dialogueReady = false;
+                dialogueActive = false;
                 Time.timeScale = 1.0f;
 
                 // Invoke a pending callback if one has been set
@@ -99,7 +101,7 @@ public class DialogueScript : MonoBehaviour
         }
 
         // Skip the first frame of dialogue being open to avoid input issues
-        if (dialogueBox != null && dialogueBox.isOpen)
+        if (dialogueBox != null && dialogueBox.isOpen && dialogueActive)
             dialogueReady = true;
 
         // TODO - Timer-based single-character output (typing effect)
@@ -147,6 +149,7 @@ public class DialogueScript : MonoBehaviour
         }
 
         // Open the dialogue box
+        dialogueActive = true;
         dialogueBox.SetText(currentLines[currentPos]);
         dialogueBox.SetVisible(true);
         dialogueBox.PlaySelectSound();

@@ -1,0 +1,14 @@
+#forestsign
+
+The sign says:\n"Terus Forest"
+
+
+#townsign
+
+The sign says:\n"Town of Nisu"
+
+
+#tradercrates
+
+The crates contain various pieces of equipment and trinkets in various states of wear.
+~tradecrates
