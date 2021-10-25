@@ -70,6 +70,18 @@ public class PlayerController : RaycastController
         // Ensure jumping is enabled when on a platform
         if (onPlatform)
             collisions.below = true;
+
+        // Update animator variables
+        Animator animator = GetComponent<Animator>();
+        animator.SetFloat("HVelocity", moveAmount.x / Time.fixedDeltaTime);
+        animator.SetFloat("VVelocity", moveAmount.y / Time.fixedDeltaTime);
+        animator.SetBool("Grounded", collisions.below);
+        animator.SetInteger("FaceDirection", collisions.faceDirection);
+        // Flip the image if facing left
+        if (collisions.faceDirection < 0)
+            transform.localScale = new Vector3(-1.0f, transform.localScale.y, transform.localScale.z);
+        else
+            transform.localScale = new Vector3(1.0f, transform.localScale.y, transform.localScale.z);
     }
 
     /// <summary>

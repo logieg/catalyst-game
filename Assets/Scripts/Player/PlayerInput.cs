@@ -57,5 +57,9 @@ public class PlayerInput : MonoBehaviour
         // Unblock jumping
         if (Input.GetButtonUp("Jump") || Input.GetButtonUp("Pause") || Input.GetButtonUp("Interact"))
             jumpBlocked = false;
+
+        // Update animator variables
+        Animator animator = GetComponent<Animator>();
+        animator.SetFloat("HInput", directionalInput.x);
     }
 }
