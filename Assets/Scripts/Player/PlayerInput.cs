@@ -61,6 +61,6 @@ public class PlayerInput : MonoBehaviour
         // Update animator variables
         Animator animator = GetComponent<Animator>();
         animator.SetFloat("HInput", directionalInput.x);
-        animator.SetBool("Paused", GameManager.GetInstance().paused);
+        animator.SetBool("CanMove", !GameManager.GetInstance().paused && !GameManager.GetInstance().dialogueBox.isOpen);
     }
 }
