@@ -29,6 +29,14 @@ public class GameManager : MonoBehaviour
     [HideInInspector]
     public MusicScript musicManager;
 
+    // Level warp info
+    [HideInInspector]
+    public Vector2 warpPosition;
+    [HideInInspector]
+    public int warpFaceDirection;
+    [HideInInspector]
+    public bool warpPositionPending = false;
+
     void Awake()
     {
         // Destroy any duplicate GameManager a level might load with
@@ -44,6 +52,9 @@ public class GameManager : MonoBehaviour
                 _instance.musicManager = musicManager;
             }
 
+            // Call the main GameManager's level change event
+            _instance.OnLevelChange();
+
             Destroy(gameObject);
         }
         else
@@ -52,6 +63,9 @@ public class GameManager : MonoBehaviour
             musicManager = transform.GetComponentInChildren<MusicScript>();
             musicManager.Play();
 
+            // Call the level change event
+            OnLevelChange();
+
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }
@@ -59,9 +73,6 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Ensure level volume matches previous level
-        AudioListener.volume = volume;
-
         // Set up the flat sound effect source
         GameObject flatSfx = new GameObject("FlatSfxSource");
         flatSfx.transform.parent = gameObject.transform;
@@ -70,6 +81,24 @@ public class GameManager : MonoBehaviour
     }
 
     void Update() { }
+
+    // Called when the level is changed
+    void OnLevelChange()
+    {
+        // Ensure level volume matches previous level
+        AudioListener.volume = volume;
+
+        // Move the player if there was a warp from another level
+        if (warpPositionPending)
+        {
+            PlayerScript player = FindObjectOfType<PlayerScript>();
+            CameraFollow2D camera = FindObjectOfType<CameraFollow2D>();
+            player.transform.position = new Vector3(warpPosition.x, warpPosition.y, player.transform.position.z);
+            player.transform.localScale = new Vector3(player.transform.localScale.x * warpFaceDirection, player.transform.localScale.y, player.transform.localScale.z);
+            camera.gameObject.transform.position = player.transform.position + Vector3.up * 0.75f;
+            warpPositionPending = false;
+        }
+    }
 
     /// <summary>
     /// Get the currently active GameManager instance

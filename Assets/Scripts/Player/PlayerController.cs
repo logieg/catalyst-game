@@ -25,8 +25,8 @@ public class PlayerController : RaycastController
         // RaycastController setup
         base.Start();
 
-        // Set initial face direction
-        collisions.faceDirection = 1;
+        // Set initial face direction based on X scale sign
+        collisions.faceDirection = gameObject.transform.localScale.x > 0 ? 1 : -1;
     }
 
     /// <summary>
