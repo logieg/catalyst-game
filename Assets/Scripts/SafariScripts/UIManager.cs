@@ -71,7 +71,7 @@ public class UIManager : MonoBehaviour
     public void quitGame()
     {
         // Simulates the closing of the application
-        UnityEditor.EditorApplication.isPlaying = false;
+        //UnityEditor.EditorApplication.isPlaying = false;
         // Will make the application close
         Application.Quit();
     }
