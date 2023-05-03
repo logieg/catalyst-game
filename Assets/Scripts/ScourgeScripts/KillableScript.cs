@@ -47,7 +47,7 @@ public class KillableScript : MonoBehaviour
             }
             // Play the death sound
             if (deathSound != null)
-                SoundEffectScript.PlaySoundEffect(transform.position, deathSound);
+                SoundEffectScript.PlaySoundEffect(deathSound, 1.0f, transform.position);
             // If preserve isn't set, destroy the object completely
             if (!preserveAfterDeath)
                 Destroy(gameObject);
@@ -59,7 +59,7 @@ public class KillableScript : MonoBehaviour
 
             // Play the hit sound
             if (hitSound != null)
-                SoundEffectScript.PlaySoundEffect(transform.position, hitSound);
+                SoundEffectScript.PlaySoundEffect(hitSound, 1.0f, transform.position);
         }
     }
 

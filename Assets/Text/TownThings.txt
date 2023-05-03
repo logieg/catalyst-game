@@ -1,0 +1,32 @@
+#forestsign
+
+The sign says:\n"Terus Forest"
+
+
+#townsign
+
+The sign says:\n"Town of Nisu"
+
+
+#tradercrates
+
+The crates contain various pieces of equipment and trinkets in various states of wear.
+~tradecrates
+
+#lostcrate
+It's a shipping crate, nailed shut. Probably shouldn't mess with it.
+
+#findcrate
+
+As the trader asked, you pry open the crate and find a strange purple lantern.
+It glows with magical energy as you pull it out and take it with you.
+~-cratesearch
+~crateopened
+
+
+#flowersearch
+
+In the small patch of flowers, a bright blue tulip catches your eye.
+You smile and take it with you, feeling a small tinge of hope.
+~-flowersearch
+~flowerfound

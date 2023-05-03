@@ -1,0 +1,40 @@
+#greeting
+
+Hi!
+Ooh, I heard about you. But don't worry, those mistakes are behind you, right?
+If you're still sad about what happened, maybe my flowers will cheer you up!
+@request
+
+
+#request
+Hi again!
+Have you seen how well the tulips are blooming? The daffodils are looking bright too!
+Y'know, if you ever find some pretty flowers out in the forest, my garden always has room!
+Or keep them for yourself! Flowers make me happy, and I hope they help you too.
+~flowersearch
+
+#searching
+
+Hi again!
+Find any pretty flowers? That's okay, I've got plenty right here!
+If you ever feel down, let the sweet smell of roses brighten your day!
+
+#flowerfound
+
+Ooh!\nThat flower's beautiful!
+Can I have it? Pleeeease?
+I'll give it a nice home here with lots of colorful friends!
+...
+You'll let me have it? Really?
+Aw, thank you so much! I'll take good care of it!
+Nothing like a little color and beauty to remind everyone things will get better...
+Smell the roses and stay positive!
+~-flowerfound
+~flowergiven
+
+
+#grateful
+
+Hi again!
+Your flower is growing well! I think it's prettier than all the others.
+...But maybe that's just because you gave it to me!

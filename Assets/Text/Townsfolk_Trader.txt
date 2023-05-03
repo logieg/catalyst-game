@@ -1,0 +1,41 @@
+#greeting
+
+Hello, traveler!
+Are you the one I heard about...?\nAh, nevermind.
+It's good to see a new face around here. Good for business AND good for morale!
+@request
+
+
+#request
+Hello, traveler.\nI hope your day is going well!
+What? Why do I look so anxious? Well, um...
+One of my items didn't make it on the last shipment. My guess is that the crate fell off somewhere.
+It's a pretty important item, so if you find the crate please open it and bring the item back.
+But no worries if you have better things to do! I understand.
+~cratesearch
+
+#searching
+
+Hello, traveler.\nI hope your day is going well!
+I'm still worried about my lost item. Hopefully it'll show up on the next shipment...
+
+#crateopened
+
+Whoa! You found it?
+Careful... That's an everglow lantern that was lit over a decade ago by a famous mage!
+Its flame will never die as long as the lantern remains closed. Thanks for finding it!
+...
+Well, um... If you want to know, I'll tell you why this lantern is so important to me.
+I think the famous mage who lit it was my grandfather. He left my family to pursue his career.
+...But he was always nice to me when I was a kid. So I wanted something to remember him by.
+Even if someone abandons you, you don't have to abandon your good memories of them.
+At least, that's what I think.
+~-crateopened
+~lanternreturned
+
+
+#grateful
+
+Hello, traveler!
+If you need something, let me know. I've got plenty of gear if you're looking to buy!
+And thanks again for finding my grandfather's lantern. I really appreciate it.
